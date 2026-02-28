@@ -1,0 +1,32 @@
+<!--
+ * @Author: colpu
+ * @Date: 2023-02-08 20:39:24
+ * @LastEditors: colpu ycg520520@qq.com
+ * @LastEditTime: 2025-09-17 16:02:41
+ *
+ * Copyright (c) 2025 by colpu, All Rights Reserved.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <% include public/meta %>
+  <% if(asset && Array.isArray(asset.css)) {%>
+  <% for (let url of asset.css) {%>
+  <link href="<%= url %>" rel="stylesheet">
+  <%}%>
+  <%}%>
+</head>
+
+<body>
+  <main class="main view-port">
+  <%-body%>
+  </main>
+  <% if(asset && Array.isArray(asset.js)) {%>
+  <% for (let url of asset.js) {%>
+  <script src="<%= url %>"></script>
+  <%}%>
+<%}%>
+</body>
+
+</html>

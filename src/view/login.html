@@ -1,0 +1,229 @@
+<!--
+ * @Author: colpu
+ * @Date: 2025-10-10 08:54:12
+ * @LastEditors: colpu ycg520520@qq.com
+ * @LastEditTime: 2025-10-11 15:50:09
+ *
+ * Copyright (c) 2025 by colpu, All Rights Reserved.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户登录</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+      padding: 30px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .description {
+      color: #7f8c8d;
+      margin-bottom: 25px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      color: #34495e;
+      font-weight: 500;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .btn:hover {
+      background-color: #2980b9;
+    }
+
+    .result-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      resize: none;
+      font-family: monospace;
+      font-size: 16px;
+    }
+
+    .copy-btn {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      background-color: rgba(52, 73, 94, 0.7);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .copy-btn:hover {
+      background-color: rgba(52, 73, 94, 1);
+    }
+
+    .info-box {
+      background-color: #f8f9fa;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 0 5px 5px 0;
+    }
+
+    .info-box h3 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    .info-box p {
+      color: #7f8c8d;
+      line-height: 1.5;
+    }
+
+    .strength-indicator {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .strength-section {
+      flex: 1;
+      height: 10px;
+      margin: 0 2px;
+      border-radius: 5px;
+      background-color: #ecf0f1;
+    }
+
+    .active {
+      background-color: #2ecc71;
+    }
+
+    .warning {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>用户登录</h1>
+    <p class="description">这是SSO用户登录</p>
+    <div class="input-group">
+      <label class="label" for="username">用户名称:</label>
+      <input class="input" id="username" placeholder="请输入用户名" title="用户名" value="admin" />
+    </div>
+    <div class="input-group">
+      <label class="label" for="password">用户密码:</label>
+      <input class="input" id="password" type="password" placeholder="请输入密码" title="用户密码" value="admin" />
+    </div>
+    <div class="input-group">
+      <label class="label" for="client">客服端:</label>
+      <input class="input" id="client" placeholder="输入客服端" title="登陆客服端" />
+    </div>
+    <button class="btn" id="login">登陆</button>
+  </div>
+  <script>
+    function setURL(url, params = {}, baseUrl) {
+      const uri = new URL(url, baseUrl);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          uri.searchParams.set(key, value);
+        }
+      });
+      return uri;
+    }
+    document.addEventListener('DOMContentLoaded', async function () {
+      const loginBtn = document.getElementById('login');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const clientInput = document.getElementById('client');
+      const redirect_uri = (new URLSearchParams(location.search)).get('redirect_uri');
+      // 生成随机密钥
+      loginBtn.addEventListener('click', async function () {
+        const body = {
+          username: usernameInput.value,
+          password: passwordInput.value,
+          client_id: clientInput.value,
+          grant_type: 'password',
+        }
+        fetch('/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body)
+        }).then(async res => (await res.json()).data).then(res => {
+          if (redirect_uri) {
+            const uri = setURL(redirect_uri, res)
+            location.href = uri.href;
+
+          } else {
+            console.log('登陆成功', res)
+          }
+        })
+      });
+    });
+  </script>
+</body>
+
+</html>
