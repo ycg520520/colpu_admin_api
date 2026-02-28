@@ -2,20 +2,20 @@
  * @Author: colpu
  * @Date: 2026-02-10 16:56:08
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-11 23:42:07
+ * @LastEditTime: 2026-02-28 23:28:53
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 export default [
   {
-    title: "大道至简",
+    title: "前后端分离",
     type: 'feature',
-    content: "基于Koa自研MVC框架， 优秀的稳定性，可持续迭代，拒绝复杂设计模式。",
+    content: "提供前后端分离的版本：使用的前端技术React、antd后端Nodejs & Mysql完全分离的权限管理系统。",
   },
   {
-    title: "独有特色",
+    title: "功能完善",
     type: 'feature',
-    content: "轻量、灵活、自研、稳定、高性能。",
+    content: "内置完整的权限架构，包括：菜单、角色、用户、字典、参数等一系列系统常规模块",
   },
   {
     title: "SEO标准",
@@ -23,9 +23,9 @@ export default [
     content: "专注于SEO功能，伪静态、自定义导航、灵活设置关键词和描述。",
   },
   {
-    title: "灵活",
+    title: "响应式布局",
     type: 'feature',
-    content: "万能碎片功能，支持零碎文案配置，把灵活发挥到极致。",
+    content: "提供多终端适配：电脑、平板、手机等所有主流设备，提供多种不同风格的皮肤。页面美观，高端大气上档次。",
   },
   {
     title: "高扩展",

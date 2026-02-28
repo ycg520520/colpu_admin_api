@@ -3,13 +3,12 @@
  * @Author: colpu
  * @Date: 2026-01-14 16:48:23
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-09 17:22:29
+ * @LastEditTime: 2026-02-28 23:48:02
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
-import puppeteer from "../../utils/spider/puppeteer.js";
 import request from "../../utils/spider/request.js";
 import * as cheerio from 'cheerio';
 export default class SpiderController extends Controller {
@@ -90,7 +89,7 @@ export default class SpiderController extends Controller {
 
   async autoSpider(ctx) {
     const list = await this.service.cms.spider.findAll();
-    
+
   }
 
   async spider(ctx) {
@@ -119,7 +118,7 @@ export default class SpiderController extends Controller {
     // 如果不是分页，则直接爬取
     let res;
     if (!isPage) {
-      res = await parseFn({ url: originUrl, domain, params: { ...body, start_page, end_page }, fetch: request, puppeteer, cheerio, clearHtml, minify });
+      res = await parseFn({ url: originUrl, domain, params: { ...body, start_page, end_page }, fetch: request, cheerio, clearHtml, minify });
       if (!is_test) {
         // 记录每一页的错误日志
         this._spiderErrorLog(res);
@@ -143,7 +142,7 @@ export default class SpiderController extends Controller {
       for (let i = 0; i < len; i++) {
         const page = start_page + i;
         const url = originUrl.replace('{page}', page || '');
-        res = await parseFn({ url, domain, params: { ...body, start_page, end_page }, fetch: request, puppeteer, cheerio, clearHtml, minify });
+        res = await parseFn({ url, domain, params: { ...body, start_page, end_page }, fetch: request, cheerio, clearHtml, minify });
         console.log(`正在写入数据库`);
         if (!is_test) {
           // 记录每一页的错误日志

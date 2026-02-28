@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-02-06 18:19:27
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-08 11:35:09
+ * @LastEditTime: 2026-02-28 23:48:43
  *
  * Copyright (c) 2026 by colpu, All Rights Reserved.
 -->
@@ -13,20 +13,17 @@
 
 ```javascript
 // http://finance.people.com.cn/GB/70846/index{page}.html
-// 暴露出来的inject参数中包含有：url,domain,params,fetch,puppeteer,cheerio,clearHtml,minify
+// 暴露出来的inject参数中包含有：url,domain,params,fetch,cheerio,clearHtml,minify
 // url是需要采集的url，即处理页码后的url；
 // domain是通过url获得的域名；
 // params是存储在数据库或者表单传递的参数；
-// fetch,puppeteer,cheerio,clearHtml,minify是暴露出的一些方法
-// 暴露出来的inject参数中包含有：url,domain,params,fetch,puppeteer,cheerio,clearHtml,minify
-const { url, domain, params, fetch, puppeteer, cheerio, clearHtml, minify } =
+// fetch,cheerio,clearHtml,minify是暴露出的一些方法
+// 暴露出来的inject参数中包含有：url,domain,params,fetch,cheerio,clearHtml,minify
+const { url, domain, params, fetch, cheerio, clearHtml, minify } =
   inject;
 // 采集文章方法
 async function spiderArticle(reqUrl) {
   console.log("正在采集:", reqUrl);
-  // const $ = await puppeteer(reqUrl, async (res) => {
-  //   return cheerio.load(await res.buffer());
-  // });
   const $ = await fetch(reqUrl).then(async (res) => {
     return cheerio.load(await res.text());
   });
@@ -90,7 +87,7 @@ return result;
 
 ```javascript
 // http://finance.people.com.cn/n1/2026/0121/c1004-40649725.html
-const { url, domain, params, fetch, puppeteer, cheerio, clearHtml, minify } =
+const { url, domain, params, fetch, cheerio, clearHtml, minify } =
   inject;
 // 采集文章方法
 async function spiderArticle(reqUrl) {
