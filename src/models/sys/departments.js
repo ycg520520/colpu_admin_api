@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-25 16:41:10
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-02 00:15:32
+ * @LastEditTime: 2026-03-02 00:17:37
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -36,6 +36,10 @@ export default (sequelize) => {
       type: DataTypes.BIGINT,
       comment: "父级部门ID",
       allowNull: true,
+      // references: {
+      //   model: "Departments",
+      //   key: "id",
+      // },
     },
     code: {
       type: DataTypes.STRING(50),

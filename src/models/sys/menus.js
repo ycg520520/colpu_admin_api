@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-10-28 21:57:16
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2025-12-04 08:55:19
+ * @LastEditTime: 2026-03-02 00:17:31
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -18,10 +18,10 @@ export default (sequelize) => {
     parent_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: "Menus", // 自关联
-        key: 'id'
-      },
+      // references: {
+      //   model: "Menus", // 自关联
+      //   key: 'id'
+      // },
       comment: '父级ID'
     },
     menu_type: {
