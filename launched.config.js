@@ -2,18 +2,18 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-09 17:13:30
+ * @LastEditTime: 2026-03-01 18:29:37
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import { getConfig } from "@colpu/cli";
-const env = process.env.NODE_ENV || "development";
+const env = process.env.NODE_ENV;
 const {
   name,
   config = {},
   pkg = {}
-} = await getConfig(import.meta.dirname);
-
+} = await getConfig(import.meta.dirname, { env });
+console.log("当前环境:launched.config.js", env, import.meta.dirname);
 const WORKSPACE = `/data/tmp/${name}`;
 const PRODUCTION_DIR = `/data/project/${name}`;
 const command = [
@@ -35,7 +35,6 @@ const setDeployENV = () => {
   map[env] = Object.assign(
     {
       repo: pkg.repository.url,
-      repo: "",
       ref: "origin/master",
       host: ["127.0.0.1"],
       user: "root",

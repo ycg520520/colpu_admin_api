@@ -12,3 +12,4 @@ package-lock.json
 node_modules
 assets
 .config.js
+launched.config.json
