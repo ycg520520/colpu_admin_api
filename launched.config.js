@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-01 22:30:10
+ * @LastEditTime: 2026-03-01 22:33:32
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -20,6 +20,7 @@ const command = [
   `pm2 startOrRestart launched.config.json --env ${env}`,
   'pm2 save && pm2 startup'
 ];
+// 将本地的配置文件复制到远程服务器
 function deployLocal() {
   return config.deploy.host.map(ip => {
     return [`scp -r ./.config.js root@${ip}:${WORKSPACE}/current/.config.js`,
@@ -57,7 +58,7 @@ const LAUNCHED = {
   apps: [
     {
       name,
-      script: "./node_modules/@colpu/cli/script/service.js",
+      script: "./node_modules/@colpu/cli/src/script/service.js",
       cwd: "./",
       instances: 2,
       max_restarts: 2,
