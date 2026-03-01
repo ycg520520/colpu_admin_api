@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-01 18:29:37
+ * @LastEditTime: 2026-03-01 18:57:12
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -13,18 +13,14 @@ const {
   config = {},
   pkg = {}
 } = await getConfig(import.meta.dirname, { env });
-console.log("当前环境:launched.config.js", env, import.meta.dirname);
-const WORKSPACE = `/data/tmp/${name}`;
-const PRODUCTION_DIR = `/data/project/${name}`;
+const WORKSPACE = `/var/www/${name}`;
 const command = [
   "git fetch",
-  "yarn install --no-lockfile --production=false",
-  "npm run build",
-  `cp -rf ${WORKSPACE}/current/. ${PRODUCTION_DIR}`,
-  `cd ${PRODUCTION_DIR}`,
-  "yarn install --no-lockfile --production",
+  "npm install --no-lockfile --production",
   `pm2 startOrRestart launched.config.json --env ${env}`,
+  'pm2 save && pm2 startup'
 ];
+
 function curlBash() {
   const command = ['sleep 3']
   command.push(`curl http://127.0.0.1:${config.port}/api/spider/auto`)
@@ -67,9 +63,6 @@ const LAUNCHED = {
         COMMON_VARIABLE: true,
         PM2_ESM: true, // 关键！启用 ESM 支持
       },
-      env_local: {
-        NODE_ENV: "local",
-      },
       env_preview: {
         NODE_ENV: "preview",
       },
@@ -79,8 +72,8 @@ const LAUNCHED = {
       env_production: {
         NODE_ENV: "production",
       },
-      error_file: `/data/logs/${name}_err.log`,
-      out_file: `/data/logs/${name}_out.log`,
+      error_file: `/var/logs/${name}_err.log`,
+      out_file: `/var/logs/${name}_out.log`,
       merge_logs: true,
       log_date_format: "YYYY-MM-DD HH:mm Z",
       type: "module", // 关键配置
