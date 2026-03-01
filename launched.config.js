@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-01 21:23:12
+ * @LastEditTime: 2026-03-01 21:27:02
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -24,7 +24,7 @@ const command = [
 ];
 function copyConfig() {
   return config.deploy.host.map(ip => {
-    return `scp -r ./.config.js root@${ip}:${WORKSPACE}/.config.js`;
+    return `scp -r ./.config.js root@${ip}:${WORKSPACE}/current/.config.js`;
   })
 }
 function curlBash() {
