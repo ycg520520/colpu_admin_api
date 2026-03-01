@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-12-11 09:08:11
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-01-17 14:29:07
+ * @LastEditTime: 2026-03-02 00:18:31
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -18,10 +18,10 @@ export default (sequelize) => {
     parent_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: "Classify",
-        key: 'id'
-      },
+      // references: {
+      //   model: "Classify",
+      //   key: 'id'
+      // },
       comment: '父级ID'
     },
     name: {
