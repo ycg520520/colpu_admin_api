@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-01 21:27:02
+ * @LastEditTime: 2026-03-01 21:36:11
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -16,7 +16,7 @@ const {
 const WORKSPACE = `/var/www/${name}`;
 const command = [
   "git fetch",
-  "npm install --no-lockfile --production",
+  "npm install --no-lockfile --omit=dev",
   ...copyConfig(), // 同步配置文件
   "npm colpu-cli deploy production -g", // 服务端生成启动文件
   `pm2 startOrRestart launched.config.json --env ${env}`,
