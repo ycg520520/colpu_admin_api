@@ -7,7 +7,7 @@
     "start": "npm run dev",
     "dev": "colpu-cli service development",
     "service": "colpu-cli service",
-    "deploy": "colpu-cli deploy -g",
+    "deploy": "colpu-cli deploy",
     "daemon": "colpu-cli daemon",
     "inspect": "colpu-cli inspect development",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,7 +22,7 @@
     "@alicloud/imageaudit20191230": "^2.0.6",
     "@alicloud/openapi-client": "^0.4.15",
     "@alicloud/tea-util": "^1.4.11",
-    "@colpu/cli": "^1.0.1",
+    "@colpu/cli": "^1.0.2",
     "@colpu/core": "^1.0.0",
     "@koa/bodyparser": "^6.1.0",
     "@koa/cors": "^5.0.0",
