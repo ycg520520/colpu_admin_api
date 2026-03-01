@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-01 21:09:30
+ * @LastEditTime: 2026-03-01 21:23:12
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -17,11 +17,16 @@ const WORKSPACE = `/var/www/${name}`;
 const command = [
   "git fetch",
   "npm install --no-lockfile --production",
-  "colpu-cli deploy production -g", // 服务端生成启动文件
+  ...copyConfig(), // 同步配置文件
+  "npm colpu-cli deploy production -g", // 服务端生成启动文件
   `pm2 startOrRestart launched.config.json --env ${env}`,
   'pm2 save && pm2 startup'
 ];
-
+function copyConfig() {
+  return config.deploy.host.map(ip => {
+    return `scp -r ./.config.js root@${ip}:${WORKSPACE}/.config.js`;
+  })
+}
 function curlBash() {
   const command = ['sleep 3']
   command.push(`curl http://127.0.0.1:${config.port}/api/spider/auto`)
