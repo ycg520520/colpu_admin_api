@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "xxx.git"
+    "url": "git@gitee.com:ycg520520/colpu_admin_api.git"
   },
   "author": "",
   "license": "ISC",
