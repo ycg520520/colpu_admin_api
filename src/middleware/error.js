@@ -29,7 +29,8 @@ export default () => {
       let code = error.status, message = error.message, status = ctx.status;
       console.error(code, message, status);
       if (message) {
-        ctx.body = ctx.respond(undefined, code, message);
+        // 使用统一响应方法输出错误信息
+        ctx.respond(undefined, code, message);
         ctx.status = status;
       } else {
         ctx.throw(error);

@@ -363,8 +363,10 @@ export default class UserService extends Base {
     if (!avatar) {
       params.avatar = "assets/foindia.png-normal";
     }
+    // 先创建用户，再建立关联关系
+    const res = await users.create(params);
     await this._related(res, { post_ids, role_ids, dept_ids, operate: 'add' });
-    return users.create(params);
+    return res;
   }
   /**
    * @function 更新用户
@@ -430,26 +432,20 @@ export default class UserService extends Base {
     const where = {
       user_id: id
     }
-    const deptList = await userDepartments.findAll({
-      where
-    });
-    if (deptList) {
-      const ids = deptList.map(item => item.id);
-      await user.removeDepartments(ids);
+    const deptList = await userDepartments.findAll({ where });
+    if (deptList && deptList.length) {
+      const deptIds = deptList.map(item => item.dept_id);
+      await user.setDepartments([]); // 先清空关联
     }
-    const postList = await userPost.findAll({
-      where
-    });
-    if (postList) {
-      const ids = postList.map(item => item.id);
-      await user.removePosts(ids);
+    const postList = await userPost.findAll({ where });
+    if (postList && postList.length) {
+      const postIds = postList.map(item => item.post_id);
+      await user.setPosts([]); // 清空岗位关联
     }
-    const roleList = await roleUsers.findAll({
-      where,
-    });
-    if (roleList) {
-      const ids = roleList.map(item => item.id);
-      await user.removeRoles(ids);
+    const roleList = await roleUsers.findAll({ where });
+    if (roleList && roleList.length) {
+      const roleIds = roleList.map(item => item.role_id);
+      await user.setRoles([]); // 清空角色关联
     }
     await user.destroy();
     return true;

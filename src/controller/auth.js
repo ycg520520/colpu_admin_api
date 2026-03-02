@@ -58,16 +58,16 @@ export default class AuthController extends Controller {
 
     let client = this.config.jwt;
     if (client_id) {
-      client = (await this.service.clients.findOne(client_id));
-      // 验证客户端
+      // 从数据库加载客户端配置
+      client = await this.service.clients.findOne(client_id);
       if (!client) {
         ctx.throw(401, "Invalid client_id");
       }
 
       // 验证权限范围
       const reqScopes = scope ? scope.split(";") : []; // 请求scope
-      const authScopes = this._validateScopes(client.scope, reqScopes);
-      if (!authScopes.length) {
+      const authScopes = this._validateScopes(client.scope || [], reqScopes);
+      if (!authScopes.length && reqScopes.length) {
         ctx.throw(401, "Invalid scope");
       }
     }
@@ -136,7 +136,7 @@ export default class AuthController extends Controller {
     const { grant_type, client_id, redirect_uri, scope, state } = ctx.query;
 
     // 验证客户端
-    const client = await this.service.client.find(client_id);
+    const client = await this.service.clients.findOne(client_id);
     if (!client) {
       ctx.throw(401, "Invalid client_id");
     }
@@ -237,7 +237,7 @@ export default class AuthController extends Controller {
     });
     let client = this.config.jwt;
     if (client_id) {
-      client = await this.service.client.find(client_id);
+      client = await this.service.clients.findOne(client_id);
       if (!client) {
         ctx.throw(401, "Invalid client_id");
       }
@@ -295,27 +295,30 @@ export default class AuthController extends Controller {
         code: Joi.string().required(), // 授权码
       },
     });
-    const codeRes = await ctx.app.redis.use(0).get(`CODE:${code}`);
-    if (!codeRes) {
+    const codeResStr = await ctx.app.redis.use(0).get(`CODE:${code}`);
+    if (!codeResStr) {
       ctx.throw(401, "Invalid or expired authorization code");
     }
-    if (!this._validateClientId(codeRes.client.client_id, client)) {
+    const codeRes = JSON.parse(codeResStr);
+    // 验证授权码绑定的客户端与当前请求客户端一致
+    if (!this._validateClientId(codeRes.client?.client_id, client?.client_id)) {
       ctx.throw(401, "Invalid client_id");
     }
-    tokens = this._generateToken(codeRes.user, client, scope);
+    const tokens = this._generateToken(codeRes.user, client, codeRes.scope);
     return tokens;
   }
 
   async _credentialsToken(ctx, client) {
-    ctx.validateAsync({
+    const { secret, scope } = ctx.validateAsync({
       body: {
         secret: Joi.string().required(), // 客户端密钥
+        scope: Joi.string().optional().allow("", null),
       },
     });
     if (client.secret_key !== secret) {
       ctx.throw(401, "Client authentication failed");
     }
-    tokens = this._generateToken({}, client, scope);
+    const tokens = this._generateToken({}, client, scope);
     return tokens;
   }
 
@@ -375,7 +378,8 @@ export default class AuthController extends Controller {
    * @returns {String} 返回生成的token
    */
   _generateToken(data, client, scope) {
-    const { maxAge = 864e2 } = this.config.session || {};
+    // maxAge 采用毫秒单位，默认 24 小时
+    const { maxAge = 864e5 } = this.config.session || {};
     const { client_id } = client || {};
     const expires_in = Date.now() + maxAge; // 服务器过期时间,以秒为单位
     const signData = {

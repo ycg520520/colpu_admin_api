@@ -7,7 +7,8 @@
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import fs from 'fs/promises';
-import { join } from 'path';
+import * as fsSync from 'fs';
+import path, { join } from 'path';
 import { Controller } from "@colpu/core";
 import { getFileMD5 } from "../utils/upload.js";
 import Joi from "joi";
@@ -123,19 +124,21 @@ export default class UploadController extends Controller {
     // 获取上传配置目录
     const config = this.config.upload || {};
     const uploadDir = config.dir;
-    if (fs.existsSync(uploadDir)) {
-      const fileNames = fs.readdirSync(uploadDir);
-      files.push(...fileNames.map(filename => {
-        const filePath = path.join(uploadDir, filename);
-        const stats = fs.statSync(filePath);
-        return {
-          filename,
-          path: filePath,
-          size: stats.size,
-          created_at: stats.birthtime,
-          updated_at: stats.mtime
-        };
-      }));
+    if (uploadDir && fsSync.existsSync(uploadDir)) {
+      const fileNames = fsSync.readdirSync(uploadDir);
+      files.push(
+        ...fileNames.map((filename) => {
+          const filePath = path.join(uploadDir, filename);
+          const stats = fsSync.statSync(filePath);
+          return {
+            filename,
+            path: filePath,
+            size: stats.size,
+            created_at: stats.birthtime,
+            updated_at: stats.mtime,
+          };
+        })
+      );
     }
     ctx.respond(files);
   }
