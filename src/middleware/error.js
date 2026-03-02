@@ -6,6 +6,11 @@
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
+
+/**
+ * 全局错误处理中间件
+ * 捕获下游中间件/路由抛出的错误，统一格式化为 respond 响应体并设置 ctx.status
+ */
 // import { colorConsole } from '../utils/color-console.js';
 const IS_DEV = process.env.NODE_ENV === 'development'
 // 生产环境配置

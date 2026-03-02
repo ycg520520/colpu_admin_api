@@ -8,12 +8,36 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+
+/**
+ * 标签管理控制器（CMS）
+ */
 export default class TagsController extends Controller {
+  /**
+   * @api {get} /tags/all
+   * @apiName tagsAll
+   * @apiDescription 获取所有标签
+   * @apiGroup CMS-Tags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Array} data 标签列表
+   */
   async all(ctx) {
     const data = await this.service.cms.tags.all();
     return ctx.respond(data);
   }
 
+  /**
+   * @api {get} /tags/list
+   * @apiName tagsList
+   * @apiDescription 分页获取标签列表
+   * @apiGroup CMS-Tags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} [page=1] 页码
+   * @apiQuery {Number} [pageSize=20] 每页条数
+   * @apiSuccess {Object} data 分页标签列表
+   */
   async list(ctx) {
     const query = ctx.validateAsync({
       query: {
@@ -25,6 +49,16 @@ export default class TagsController extends Controller {
     return ctx.respond(data);
   }
 
+  /**
+   * @api {get} /tags
+   * @apiName tagsFindOne
+   * @apiDescription 根据ID获取标签详情
+   * @apiGroup CMS-Tags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 标签ID (必需)
+   * @apiSuccess {Object} data 标签详情
+   */
   async findOne(ctx) {
     const { id } = ctx.validateAsync({
       query: {
@@ -35,6 +69,16 @@ export default class TagsController extends Controller {
     ctx.respond(data);
   };
 
+  /**
+   * @api {post} /tags
+   * @apiName tagsCreate
+   * @apiDescription 创建标签
+   * @apiGroup CMS-Tags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} name 标签名称 (必需)
+   * @apiSuccess {Object} data 创建的标签信息
+   */
   async create(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -46,6 +90,16 @@ export default class TagsController extends Controller {
     ctx.respond(data, null, '创建成功');
   };
 
+  /**
+   * @api {put} /tags
+   * @apiName tagsUpdate
+   * @apiDescription 更新标签
+   * @apiGroup CMS-Tags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {Number} id 标签ID (必需)
+   * @apiSuccess {Object} data 更新后的标签信息
+   */
   async update(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -57,6 +111,16 @@ export default class TagsController extends Controller {
 
   };
 
+  /**
+   * @api {delete} /tags
+   * @apiName tagsDelete
+   * @apiDescription 删除标签
+   * @apiGroup CMS-Tags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} id 标签ID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async delete(ctx) {
     const query = ctx.validateAsync({
       query: {

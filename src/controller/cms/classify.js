@@ -8,11 +8,36 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+
+/**
+ * 分类管理控制器（CMS）
+ */
 export default class ClassifyController extends Controller {
+  /**
+   * @api {get} /classify/all
+   * @apiName classifyAll
+   * @apiDescription 获取所有分类
+   * @apiGroup CMS-Classify
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Object} query 查询参数
+   * @apiSuccess {Array} data 分类列表
+   */
   async all(ctx) {
     const data = await this.service.cms.classify.all(ctx.query);
     return ctx.respond(data);
   }
+
+  /**
+   * @api {get} /classify/tree
+   * @apiName classifyTree
+   * @apiDescription 获取分类树形结构
+   * @apiGroup CMS-Classify
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Boolean} [exclude] 是否排除某些项
+   * @apiSuccess {Array} data 分类树
+   */
   async tree(ctx) {
     const { exclude } = ctx.validateAsync({
       query: {
@@ -33,6 +58,16 @@ export default class ClassifyController extends Controller {
     return ctx.respond(data);
   }
 
+  /**
+   * @api {get} /classify
+   * @apiName classifyFindOne
+   * @apiDescription 根据ID获取分类详情
+   * @apiGroup CMS-Classify
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 分类ID (必需)
+   * @apiSuccess {Object} data 分类详情
+   */
   async findOne(ctx) {
     const { id } = ctx.validateAsync({
       query: {
@@ -43,6 +78,17 @@ export default class ClassifyController extends Controller {
     ctx.respond(data);
   };
 
+  /**
+   * @api {post} /classify
+   * @apiName classifyCreate
+   * @apiDescription 创建分类
+   * @apiGroup CMS-Classify
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} name 分类名称 (必需)
+   * @apiBody {Number} [parent_id] 父分类ID
+   * @apiSuccess {Object} data 创建的分类信息
+   */
   async create(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -54,6 +100,17 @@ export default class ClassifyController extends Controller {
     ctx.respond(data, null, '创建成功');
   };
 
+  /**
+   * @api {put} /classify
+   * @apiName classifyUpdate
+   * @apiDescription 更新分类
+   * @apiGroup CMS-Classify
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {Number} id 分类ID (必需)
+   * @apiBody {Number} [parent_id] 父分类ID
+   * @apiSuccess {Object} data 更新后的分类信息
+   */
   async update(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -68,6 +125,16 @@ export default class ClassifyController extends Controller {
 
   };
 
+  /**
+   * @api {delete} /classify
+   * @apiName classifyDelete
+   * @apiDescription 删除分类
+   * @apiGroup CMS-Classify
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} id 分类ID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async delete(ctx) {
     const query = ctx.validateAsync({
       query: {

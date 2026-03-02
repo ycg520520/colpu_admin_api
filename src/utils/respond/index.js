@@ -14,6 +14,11 @@ import cryptoUtils from "../crypto.js";
 // 状态码不在系统状态内，且大于999小余100，认为是需要返回正确的状态数据给用户
 const codes = _.merge(statuses, userCodes);
 
+/**
+ * 统一响应插件
+ * 为 ctx 注入 respond、respondEncrypt、respondStatus 方法
+ * @param {Object} app Koa 应用实例
+ */
 export default function respondPlugin(app) {
   /**
    * @function status 根据code取状态码对应的message

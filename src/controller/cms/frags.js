@@ -8,8 +8,23 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+
+/**
+ * 碎片管理控制器（CMS），用于管理页面片段内容
+ */
 export default class FragsController extends Controller {
 
+  /**
+   * @api {get} /frags/list
+   * @apiName fragsList
+   * @apiDescription 分页获取碎片列表
+   * @apiGroup CMS-Frags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} [page=1] 页码
+   * @apiQuery {Number} [pageSize=20] 每页条数
+   * @apiSuccess {Object} data 分页碎片列表
+   */
   async list(ctx) {
     const query = ctx.validateAsync({
       query: {
@@ -21,6 +36,16 @@ export default class FragsController extends Controller {
     return ctx.respond(data);
   }
 
+  /**
+   * @api {get} /frags
+   * @apiName fragsFindOne
+   * @apiDescription 根据ID获取碎片详情
+   * @apiGroup CMS-Frags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 碎片ID (必需)
+   * @apiSuccess {Object} data 碎片详情
+   */
   async findOne(ctx) {
     const { id } = ctx.validateAsync({
       query: {
@@ -31,6 +56,18 @@ export default class FragsController extends Controller {
     ctx.respond(data);
   };
 
+  /**
+   * @api {post} /frags
+   * @apiName fragsCreate
+   * @apiDescription 创建碎片
+   * @apiGroup CMS-Frags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} title 标题 (必需)
+   * @apiBody {Number} type 类型 (必需)
+   * @apiBody {String} content 内容 (必需)
+   * @apiSuccess {Object} data 创建的碎片信息
+   */
   async create(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -44,6 +81,16 @@ export default class FragsController extends Controller {
     ctx.respond(data, null, '创建成功');
   };
 
+  /**
+   * @api {put} /frags
+   * @apiName fragsUpdate
+   * @apiDescription 更新碎片
+   * @apiGroup CMS-Frags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {Number} id 碎片ID (必需)
+   * @apiSuccess {Object} data 更新后的碎片信息
+   */
   async update(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -55,6 +102,16 @@ export default class FragsController extends Controller {
 
   };
 
+  /**
+   * @api {delete} /frags
+   * @apiName fragsDelete
+   * @apiDescription 删除碎片
+   * @apiGroup CMS-Frags
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} id 碎片ID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async delete(ctx) {
     const query = ctx.validateAsync({
       query: {

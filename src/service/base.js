@@ -7,12 +7,22 @@
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import { Service } from "@colpu/core";
+
+/**
+ * 基础 Service 类，提供通用工具方法
+ */
 export default class Base extends Service {
   constructor(ctx) {
     super(ctx);
     this.utils = ctx.utils;
   }
 
+  /**
+   * 将参数对象转换为 SQL 占位符格式
+   * @param {Object} params 参数对象，支持 as 前缀
+   * @param {Number} [mode=0] 模式：0=INSERT 格式，1=WHERE 格式，2=UPDATE SET 格式
+   * @returns {Object} { keys, values, replacements } 或 { values, replacements }
+   */
   installParams(params, mode = 0) {
     const as = params.as ? `${params.as}.` : "";
     delete params.as;
@@ -50,6 +60,13 @@ export default class Base extends Service {
     return returnData;
   }
 
+  /**
+   * 组合分页响应数据
+   * @param {Object} data Sequelize findAndCountAll 结果 { rows, count }
+   * @param {Number} page 当前页码
+   * @param {Number} pageSize 每页条数
+   * @returns {Object} { rows, total, page, pageSize, totalPages }
+   */
   composePaginationData(data, page, pageSize) {
     const { rows, count: total = 0 } = data || {};
     return {

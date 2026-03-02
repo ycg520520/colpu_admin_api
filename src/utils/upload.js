@@ -6,6 +6,13 @@
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
+
+/**
+ * 文件上传工具模块
+ * - uploadMulter: 基于 @koa/multer 的上传中间件，支持图片过滤、大小限制
+ * - getFileMD5: 计算文件 MD5，用于去重/秒传
+ * - koaBusboy: 基于 busboy 的流式上传，支持 SSE 进度
+ */
 import fs from 'fs';
 import path from 'path';
 import multer from '@koa/multer';
@@ -32,7 +39,13 @@ function fileFilter(ctx, file, cb) {
     cb(new Error('只允许上传图片！'), false);
   }
 };
-// 5MB 默认限制
+
+/**
+ * 创建 multer 上传中间件
+ * @param {String} dir 临时存储目录
+ * @param {Number} [fileSize=5MB] 单文件大小限制（字节）
+ * @returns {Function} Koa multer 中间件
+ */
 export default function uploadMulter(dir, fileSize = 5 * 1024 * 1024) {
   return multer({
     storage: storage(dir),
@@ -40,7 +53,12 @@ export default function uploadMulter(dir, fileSize = 5 * 1024 * 1024) {
     limits: { fileSize }
   });
 }
-// 计算单个文件 MD5
+
+/**
+ * 计算单个文件的 MD5 哈希
+ * @param {Object} file multer 文件对象 { path }
+ * @returns {Promise<String>} MD5 十六进制字符串
+ */
 export function getFileMD5(file) {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('md5');

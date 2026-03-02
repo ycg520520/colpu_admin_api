@@ -13,7 +13,22 @@ import { getFileMD5 } from "../utils/upload.js";
 import Joi from "joi";
 // 用于存储上传进度
 const uploadProgress = new Map();
+
+/**
+ * 文件上传控制器
+ */
 export default class UploadController extends Controller {
+  /**
+   * @api {post} /upload/single
+   * @apiName uploadSingle
+   * @apiDescription 单文件上传，支持 MD5 去重
+   * @apiGroup Upload
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {File} file 上传文件 (必需)
+   * @apiBody {String} [md5] 文件 MD5，用于秒传/去重
+   * @apiSuccess {Object} data 包含 filename、originalname、url、domain、size
+   */
   async single(ctx) {
     if (!ctx.file) {
       ctx.throw(400, '未选择文件');
@@ -65,6 +80,17 @@ export default class UploadController extends Controller {
       size: file.size
     }, 0, '上传成功')
   }
+
+  /**
+   * @api {post} /upload/multiple
+   * @apiName uploadMultiple
+   * @apiDescription 多文件上传（最多 5 个）
+   * @apiGroup Upload
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {File[]} files 上传文件数组 (必需)
+   * @apiSuccess {Array} data 文件信息数组
+   */
   async multiple(ctx, next) {
     if (!ctx.files || ctx.files.length === 0) {
       ctx.throw(400, '未选择文件');
@@ -83,7 +109,15 @@ export default class UploadController extends Controller {
     ctx.respond(filesWithMD5, 0, '上传成功')
   }
 
-  // 获取已上传文件列表
+  /**
+   * @api {get} /upload/list
+   * @apiName uploadList
+   * @apiDescription 获取已上传文件列表
+   * @apiGroup Upload
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Array} data 文件列表（filename、path、size、created_at、updated_at）
+   */
   async list(ctx) {
     const files = [];
     // 获取上传配置目录
@@ -106,6 +140,16 @@ export default class UploadController extends Controller {
     ctx.respond(files);
   }
 
+  /**
+   * @api {delete} /upload
+   * @apiName uploadDelete
+   * @apiDescription 删除已上传文件
+   * @apiGroup Upload
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} filename 文件名 (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async delete(ctx) {
     const { filename } = ctx.validateAsync({
       query: {

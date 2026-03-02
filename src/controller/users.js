@@ -8,7 +8,20 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+
+/**
+ * 用户管理控制器
+ */
 export default class UserController extends Controller {
+  /**
+   * @api {get} /user/info
+   * @apiName getUserInfo
+   * @apiDescription 获取当前登录用户信息
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Object} data 用户信息（含 roles、permissions）
+   */
   async getUserInfo(ctx) {
     const { uid } = ctx.state.user;
     const { dataValues } = await this.service.users.findUser({
@@ -20,6 +33,16 @@ export default class UserController extends Controller {
     ctx.respond(dataValues);
   }
 
+  /**
+   * @api {get} /user/search
+   * @apiName searchUserList
+   * @apiDescription 根据关键词搜索用户列表
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} keyword 搜索关键词（支持昵称、手机、邮箱）
+   * @apiSuccess {Array} data 用户列表 [{id, value}, {nickname, label}]
+   */
   async searchUserList(ctx) {
     const params = ctx.validateAsync({
       query: {
@@ -30,6 +53,18 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {get} /user/list
+   * @apiName getUserList
+   * @apiDescription 分页获取用户列表
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} [page=1] 页码
+   * @apiQuery {Number} [pageSize=20] 每页条数
+   * @apiQuery {Number} [dept_id] 部门ID（可选，按部门筛选）
+   * @apiSuccess {Object} data 分页用户列表
+   */
   async getUserList(ctx) {
     const params = ctx.validateAsync({
       query: {
@@ -42,6 +77,17 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {post} /user
+   * @apiName createUser
+   * @apiDescription 创建用户
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} username 用户名 (必需)
+   * @apiBody {String} password 密码 (必需)
+   * @apiSuccess {Object} data 创建的用户信息
+   */
   async createUser(ctx) {
     ctx.validateAsync({
       body: {
@@ -54,6 +100,16 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {delete} /user
+   * @apiName deleteUser
+   * @apiDescription 删除用户
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 用户ID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async deleteUser(ctx) {
     ctx.validateAsync({
       query: {
@@ -64,6 +120,20 @@ export default class UserController extends Controller {
     ctx.respond(data, data ? 0 : 1, data ? '删除成功' : '删除失败');
   }
 
+  /**
+   * @api {put} /user
+   * @apiName updateUser
+   * @apiDescription 更新用户信息
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} id 用户ID (必需)
+   * @apiBody {String} [username] 用户名
+   * @apiBody {String} [password] 密码
+   * @apiBody {String} [nickname] 昵称
+   * @apiBody {Number} [status] 状态
+   * @apiSuccess {Object} data 更新后的用户信息
+   */
   async updateUser(ctx) {
     ctx.validateAsync({
       body: {
@@ -74,6 +144,15 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {get} /user/role
+   * @apiName getUserRole
+   * @apiDescription 获取当前用户角色
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Array} data 用户角色列表
+   */
   async getUserRole(ctx) {
     const { uid } = ctx.state.user;
     const data = await this.service.users.findUserRole({
@@ -82,6 +161,17 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {put} /user/role/:uid
+   * @apiName updateUserRole
+   * @apiDescription 更新用户角色
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiBody {String} role 角色信息 (必需)
+   * @apiSuccess {Object} data 更新结果
+   */
   async updateUserRole(ctx) {
     ctx.validateAsync({
       params: {
@@ -95,6 +185,16 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {delete} /user/role/:uid
+   * @apiName deleteUserRole
+   * @apiDescription 删除用户角色
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async deleteUserRole(ctx) {
     ctx.validateAsync({
       params: {
@@ -104,6 +204,16 @@ export default class UserController extends Controller {
     const data = await this.service.users.deleteUserRole(ctx.params.uid);
     ctx.respond(data);
   }
+
+  /**
+   * @api {get} /user/permission
+   * @apiName getUserPermission
+   * @apiDescription 获取当前用户权限
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Object} data 用户角色与权限
+   */
   async getUserPermission(ctx) {
     const { uid } = ctx.state.user;
     const data = await this.service.users.findUserRoleAndPermission({
@@ -112,6 +222,17 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {put} /user/permission/:uid
+   * @apiName updateUserPermission
+   * @apiDescription 更新用户权限
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiBody {String} permission 权限信息 (必需)
+   * @apiSuccess {Object} data 更新结果
+   */
   async updateUserPermission(ctx) {
     ctx.validateAsync({
       params: {
@@ -125,6 +246,16 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {delete} /user/permission/:uid
+   * @apiName deleteUserPermission
+   * @apiDescription 删除用户权限
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async deleteUserPermission(ctx) {
     ctx.validateAsync({
       params: {
@@ -135,6 +266,15 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {get} /user/menu
+   * @apiName getUserMenu
+   * @apiDescription 获取当前用户菜单
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Array} data 用户菜单列表
+   */
   async getUserMenu(ctx) {
     const { uid } = ctx.state.user;
     const data = await this.service.users.findUserMenu({
@@ -143,6 +283,17 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {put} /user/menu/:uid
+   * @apiName updateUserMenu
+   * @apiDescription 更新用户菜单
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiBody {String} menu 菜单信息 (必需)
+   * @apiSuccess {Object} data 更新结果
+   */
   async updateUserMenu(ctx) {
     ctx.validateAsync({
       params: {
@@ -155,6 +306,17 @@ export default class UserController extends Controller {
     const data = await this.service.users.updateUserMenu(ctx.params.uid, ctx.request.body);
     ctx.respond(data);
   }
+
+  /**
+   * @api {delete} /user/menu/:uid
+   * @apiName deleteUserMenu
+   * @apiDescription 删除用户菜单
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async deleteUserMenu(ctx) {
     ctx.validateAsync({
       params: {
@@ -164,6 +326,16 @@ export default class UserController extends Controller {
     const data = await this.service.users.deleteUserMenu(ctx.params.uid);
     ctx.respond(data);
   }
+
+  /**
+   * @api {get} /user/menu/tree
+   * @apiName getUserMenuTree
+   * @apiDescription 获取当前用户菜单树
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Array} data 用户菜单树
+   */
   async getUserMenuTree(ctx) {
     const { uid } = ctx.state.user;
     const data = await this.service.users.findUserMenuTree({
@@ -171,6 +343,18 @@ export default class UserController extends Controller {
     });
     ctx.respond(data);
   }
+
+  /**
+   * @api {put} /user/menu/tree/:uid
+   * @apiName updateUserMenuTree
+   * @apiDescription 更新用户菜单树
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiBody {String} menu 菜单树信息 (必需)
+   * @apiSuccess {Object} data 更新结果
+   */
   async updateUserMenuTree(ctx) {
     ctx.validateAsync({
       params: {
@@ -184,6 +368,16 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
+  /**
+   * @api {delete} /user/menu/tree/:uid
+   * @apiName deleteUserMenuTree
+   * @apiDescription 删除用户菜单树
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiParam {String} uid 用户UID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async deleteUserMenuTree(ctx) {
     ctx.validateAsync({
       params: {
@@ -194,28 +388,21 @@ export default class UserController extends Controller {
     ctx.respond(data);
   }
 
-  /* @api {get} /user/check
-   * @apiName token
-   * @apiDescription 检查用户是否存在
+  /**
+   * @api {get} /user/check
+   * @apiName checkUser
+   * @apiDescription 检查用户名是否存在
    * @apiGroup User
-   * @apiVersion  1.0.0
-   *
-   * @apiQuery {String} username 用户名
-   *
-   * @apiSuccess {Boolean} status 请求是否成功
-   * @apiSuccess {String} message 请求结果信息
-   * Example {json} Success-Response:
+   * @apiVersion 1.0.0
+   * @apiQuery {String} [username] 用户名
+   * @apiSuccess {Boolean} data 是否存在（true=存在，false=不存在）
+   * @apiSuccess {String} message 提示信息
+   * @apiSuccessExample {json} Success-Response:
    *  HTTP/1.1 200 OK
-   *  {
-   *    "status": 1,
-   *    "message": "存在用户"
-   *  }
-   * Example {json} Error-Response:
+   *  { "status": 0, "data": true, "message": "存在用户" }
+   * @apiSuccessExample {json} Error-Response:
    *  HTTP/1.1 200 OK
-   *  {
-   *    "status": 0,
-   *    "message": "不存在用户"
-   *  }
+   *  { "status": 0, "data": false, "message": "不存在用户" }
    */
   async checkUser(ctx) {
     ctx.validateAsync({

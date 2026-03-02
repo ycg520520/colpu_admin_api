@@ -8,11 +8,35 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+
+/**
+ * 部门管理控制器
+ */
 export default class DepartmentsController extends Controller {
+  /**
+   * @api {get} /department/tree
+   * @apiName departmentTree
+   * @apiDescription 获取部门树形结构
+   * @apiGroup Department
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Array} data 部门树
+   */
   async tree(ctx) {
     const data = await this.service.departments.tree();
     return ctx.respond(data);
   }
+
+  /**
+   * @api {get} /department/list
+   * @apiName departmentList
+   * @apiDescription 获取部门列表
+   * @apiGroup Department
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Object} query 查询参数
+   * @apiSuccess {Array} data 部门列表
+   */
   async list(ctx) {
     // ctx.validateAsync({
     //   query: {
@@ -24,6 +48,16 @@ export default class DepartmentsController extends Controller {
     return ctx.respond(data);
   }
 
+  /**
+   * @api {get} /department
+   * @apiName departmentFindOne
+   * @apiDescription 根据ID获取部门详情
+   * @apiGroup Department
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 部门ID (必需)
+   * @apiSuccess {Object} data 部门详情
+   */
   async findOne(ctx) {
     ctx.validateAsync({
       query: {
@@ -35,6 +69,17 @@ export default class DepartmentsController extends Controller {
     ctx.respond(data);
   };
 
+  /**
+   * @api {post} /department
+   * @apiName departmentCreate
+   * @apiDescription 创建部门
+   * @apiGroup Department
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} name 部门名称 (必需)
+   * @apiBody {Number} [parent_id] 父部门ID
+   * @apiSuccess {Object} data 创建的部门信息
+   */
   async create(ctx) {
     const body = ctx.request.body;
     ctx.validateAsync({
@@ -47,6 +92,17 @@ export default class DepartmentsController extends Controller {
     ctx.respond(data, null, '创建成功');
   };
 
+  /**
+   * @api {put} /department
+   * @apiName departmentUpdate
+   * @apiDescription 更新部门
+   * @apiGroup Department
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {Number} id 部门ID (必需)
+   * @apiBody {Object} [fields] 其他可扩展字段
+   * @apiSuccess {Object} data 更新后的部门信息
+   */
   async update(ctx) {
     ctx.validateAsync({
       body: {
@@ -59,6 +115,16 @@ export default class DepartmentsController extends Controller {
 
   };
 
+  /**
+   * @api {delete} /department
+   * @apiName departmentDelete
+   * @apiDescription 删除部门
+   * @apiGroup Department
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} id 部门ID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async delete(ctx) {
     ctx.validateAsync({
       query: {

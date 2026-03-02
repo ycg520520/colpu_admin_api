@@ -6,7 +6,14 @@
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-// import jwt from "jsonwebtoken";
+
+/**
+ * JWT Token 验证中间件
+ * 从 Authorization 头解析 Bearer Token，调用 auth._verify 验证并将用户信息写入 ctx.state.user
+ * @param {Object} ctx Koa 上下文
+ * @param {Function} next 下一个中间件
+ * @throws {401} 未提供 token 或 token 无效
+ */
 export default async function verify(ctx, next) {
   // const jwtConf = ctx.app.config.jwt || {};
 

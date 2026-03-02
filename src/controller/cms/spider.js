@@ -11,7 +11,22 @@ import { Controller } from "@colpu/core";
 import Joi from "joi";
 import request from "../../utils/spider/request.js";
 import * as cheerio from 'cheerio';
+
+/**
+ * 爬虫管理控制器（CMS），用于配置和执行网页爬虫任务
+ */
 export default class SpiderController extends Controller {
+  /**
+   * @api {get} /spider/list
+   * @apiName spiderList
+   * @apiDescription 分页获取爬虫配置列表
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} [page=1] 页码
+   * @apiQuery {Number} [pageSize=20] 每页条数
+   * @apiSuccess {Object} data 分页爬虫配置列表
+   */
   async list(ctx) {
     const query = ctx.validateAsync({
       query: {
@@ -23,6 +38,16 @@ export default class SpiderController extends Controller {
     return ctx.respond(data);
   }
 
+  /**
+   * @api {get} /spider
+   * @apiName spiderFindOne
+   * @apiDescription 根据ID获取爬虫配置详情
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 爬虫配置ID (必需)
+   * @apiSuccess {Object} data 爬虫配置详情
+   */
   async findOne(ctx) {
     const { id } = ctx.validateAsync({
       query: {
@@ -33,6 +58,18 @@ export default class SpiderController extends Controller {
     ctx.respond(data);
   };
 
+  /**
+   * @api {post} /spider
+   * @apiName spiderCreate
+   * @apiDescription 创建爬虫配置
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} title 爬虫标题 (必需)
+   * @apiBody {String} [url] 爬取URL
+   * @apiBody {String} [parse_data] 解析脚本
+   * @apiSuccess {Object} data 创建的爬虫配置信息
+   */
   async create(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -44,6 +81,16 @@ export default class SpiderController extends Controller {
     ctx.respond(data, null, '创建成功');
   };
 
+  /**
+   * @api {put} /spider
+   * @apiName spiderUpdate
+   * @apiDescription 更新爬虫配置
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {Number} id 爬虫配置ID (必需)
+   * @apiSuccess {Object} data 更新后的爬虫配置信息
+   */
   async update(ctx) {
     const body = ctx.validateAsync({
       body: {
@@ -56,6 +103,16 @@ export default class SpiderController extends Controller {
 
   };
 
+  /**
+   * @api {delete} /spider
+   * @apiName spiderDelete
+   * @apiDescription 删除爬虫配置
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} id 爬虫配置ID (必需)
+   * @apiSuccess {Object} data 删除结果
+   */
   async delete(ctx) {
     const query = ctx.validateAsync({
       query: {
@@ -66,7 +123,16 @@ export default class SpiderController extends Controller {
     ctx.respond(data, data ? 0 : 1, data ? '删除成功' : '删除失败');
   };
 
-
+  /**
+   * @api {get} /spider/schedule
+   * @apiName spiderSchedule
+   * @apiDescription 执行爬虫定时任务（按配置ID爬取一页）
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {String} id 爬虫配置ID (必需)
+   * @apiSuccess {Object} data 爬取结果
+   */
   async spiderSchedule(ctx) {
     const { id } = ctx.validateAsync({
       query: {
@@ -87,11 +153,33 @@ export default class SpiderController extends Controller {
     ctx.respond(data, 0, '测试接口');
   }
 
+  /**
+   * @api {get} /spider/auto
+   * @apiName autoSpider
+   * @apiDescription 自动执行所有爬虫任务
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiSuccess {Object} data 执行结果
+   */
   async autoSpider(ctx) {
     const list = await this.service.cms.spider.findAll();
 
   }
 
+  /**
+   * @api {post} /spider/schedule
+   * @apiName spider
+   * @apiDescription 手动执行爬虫（传入爬虫配置 body）
+   * @apiGroup CMS-Spider
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiBody {String} url 爬取URL
+   * @apiBody {String} parse_data 解析脚本
+   * @apiBody {Number} [start_page] 起始页
+   * @apiBody {Number} [end_page] 结束页
+   * @apiSuccess {Object} data 爬取结果
+   */
   async spider(ctx) {
     const body = ctx.validateAsync({
       body: {},

@@ -8,7 +8,22 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+
+/**
+ * 操作日志控制器
+ */
 export default class LogsController extends Controller {
+  /**
+   * @api {get} /log/list
+   * @apiName logList
+   * @apiDescription 分页获取操作日志列表
+   * @apiGroup Log
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer Token (必需)
+   * @apiQuery {Number} [page=1] 页码
+   * @apiQuery {Number} [pageSize=20] 每页条数
+   * @apiSuccess {Object} data 分页日志列表
+   */
   async list(ctx) {
     const params = ctx.validateAsync({
       query: {
