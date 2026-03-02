@@ -28,12 +28,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 分页爬虫配置列表
    */
   async list(ctx) {
-    const query = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const query = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.cms.spider.list(query);
     return ctx.respond(data);
   }

@@ -39,12 +39,7 @@ export default class TagsController extends Controller {
    * @apiSuccess {Object} data 分页标签列表
    */
   async list(ctx) {
-    const query = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const query = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.cms.tags.list(query);
     return ctx.respond(data);
   }

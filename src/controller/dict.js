@@ -27,13 +27,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 分页字典类型列表
    */
   async getDictTypes(ctx) {
-    ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
-    const params = ctx.query;
+    const params = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.dict.getDictTypes(params);
     ctx.respond(data);
   };

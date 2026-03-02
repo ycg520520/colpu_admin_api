@@ -7,7 +7,6 @@
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 import { Controller } from "@colpu/core";
-import Joi from "joi";
 
 /**
  * 操作日志控制器
@@ -25,12 +24,7 @@ export default class LogsController extends Controller {
    * @apiSuccess {Object} data 分页日志列表
    */
   async list(ctx) {
-    const params = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const params = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.logs.list(params);
     return ctx.respond(data);
   }

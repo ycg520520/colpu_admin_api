@@ -1,5 +1,6 @@
 import { minify } from "html-minifier-terser";
 export { minify };
+export { paginationSchema, schemaPagination } from "./validator.js";
 /**
  * [numberToUnitStr 数字转换单位字符串]
  * @param  {[Number]} number [description]

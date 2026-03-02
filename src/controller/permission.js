@@ -25,12 +25,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Object} data 分页权限列表
    */
   async list(ctx) {
-    const params = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const params = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.permission.list(params);
     return ctx.respond(data);
   }

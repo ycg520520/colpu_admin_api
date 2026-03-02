@@ -48,12 +48,7 @@ export default class ClassifyController extends Controller {
     return ctx.respond(data);
   }
   async list(ctx) {
-    const query = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const query = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.cms.classify.all(query);
     return ctx.respond(data);
   }

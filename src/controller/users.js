@@ -66,13 +66,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 分页用户列表
    */
   async getUserList(ctx) {
-    const params = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-        dept_id: Joi.number(),
-      },
-    });
+    const params = ctx.validateAsync(ctx.utils.schemaPagination({ dept_id: Joi.number() }));
     const data = await this.service.users.userList(params);
     ctx.respond(data);
   }

@@ -25,12 +25,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 分页角色列表
    */
   async roleList(ctx) {
-    const param = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const param = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.roles.roleList(param);
     return ctx.respond(data);
   }
@@ -148,13 +143,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 用户列表
    */
   async getRoleUser(ctx) {
-    const params = ctx.validateAsync({
-      query: {
-        role_id: Joi.number().required(),
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const params = ctx.validateAsync(ctx.utils.schemaPagination({ role_id: Joi.number().required() }));
     const data = await this.service.roles.getRoleUser(params);
     ctx.respond(data, null, '创建成功');
   };

@@ -25,12 +25,7 @@ export default class FriendController extends Controller {
    * @apiSuccess {Object} data 分页友链列表
    */
   async list(ctx) {
-    const query = ctx.validateAsync({
-      query: {
-        page: Joi.number().default(1),
-        pageSize: Joi.number().default(20),
-      },
-    });
+    const query = ctx.validateAsync(ctx.utils.schemaPagination());
     const data = await this.service.cms.friend.list(query);
     return ctx.respond(data);
   }
