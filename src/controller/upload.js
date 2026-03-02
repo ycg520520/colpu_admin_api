@@ -98,12 +98,13 @@ export default class UploadController extends Controller {
     }
     // 为每个文件计算 MD5
     const filesWithMD5 = [];
+    const domain = this.config.domain;
     for (const file of ctx.files) {
       const md5File = await getFileMD5(file);
       filesWithMD5.push({
         filename: md5File,
         originalname: file.originalname,
-        url: `http://localhost:8610/uploads/${md5File}`,
+        url: `${domain}/uploads/${md5File}`,
         size: file.size
       });
     }

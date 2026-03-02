@@ -26,15 +26,41 @@ export default () => {
     try {
       await next();
     } catch (error) {
-      let code = error.status, message = error.message, status = ctx.status;
-      console.error(code, message, status);
-      if (message) {
-        // 使用统一响应方法输出错误信息
-        ctx.respond(undefined, code, message);
-        ctx.status = status;
-      } else {
-        ctx.throw(error);
+      const rawStatus = error?.status;
+      const message = error?.message;
+
+      // 约定：
+      // - HTTP 错误（100-599）：HTTP 状态码与业务 status 保持一致
+      // - 业务错误（>=10000）：HTTP 返回 200，业务 status 使用业务码
+      // - 其它未知错误：HTTP 500
+      let httpStatus = 500;
+      let bizStatus = 500;
+      if (typeof rawStatus === "number") {
+        if (rawStatus >= 10000) {
+          httpStatus = 200;
+          bizStatus = rawStatus;
+        } else if (rawStatus >= 100 && rawStatus <= 599) {
+          httpStatus = rawStatus;
+          bizStatus = rawStatus;
+        } else {
+          // 例如：rawStatus=0/1 等，作为业务状态码返回
+          httpStatus = 200;
+          bizStatus = rawStatus;
+        }
       }
+
+      // 记录错误日志
+      console.error(rawStatus, message, error);
+
+      if (message) {
+        ctx.respond(undefined, bizStatus, message);
+        ctx.status = httpStatus;
+        return;
+      }
+
+      // 无 message 的错误，继续抛给 Koa 默认处理
+      ctx.status = httpStatus;
+      ctx.throw(error);
     }
   };
 }

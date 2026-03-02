@@ -434,17 +434,14 @@ export default class UserService extends Base {
     }
     const deptList = await userDepartments.findAll({ where });
     if (deptList && deptList.length) {
-      const deptIds = deptList.map(item => item.dept_id);
       await user.setDepartments([]); // 先清空关联
     }
     const postList = await userPost.findAll({ where });
     if (postList && postList.length) {
-      const postIds = postList.map(item => item.post_id);
       await user.setPosts([]); // 清空岗位关联
     }
     const roleList = await roleUsers.findAll({ where });
     if (roleList && roleList.length) {
-      const roleIds = roleList.map(item => item.role_id);
       await user.setRoles([]); // 清空角色关联
     }
     await user.destroy();

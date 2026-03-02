@@ -94,6 +94,10 @@ export default class AuthController extends Controller {
         ctx.throw(401, "没有参数: grant_type");
     }
 
+    // 存储 refresh_token（用于刷新/吊销等扩展能力）
+    if (tokens?.refresh_token) {
+      await this._setRefreshToken(ctx, tokens);
+    }
     ctx.respond(tokens);
   }
 
@@ -344,8 +348,18 @@ export default class AuthController extends Controller {
       }
     }
 
+    // 可选：如果服务端存储了 refresh_token，则要求 refresh_token 必须存在
+    const storeKey = `REFRESH_TOKEN:${refresh_token}`;
+    const storedStr = await ctx.app.redis.use(0).get(storeKey);
+    if (storedStr) {
+      // 刷新成功后删除旧 refresh_token，实现简单轮换
+      await ctx.app.redis.use(0).del(storeKey);
+    }
+
     // 生成新的访问令牌
     const tokens = this._generateToken(oldTokens, client, scope);
+    // 写入新 refresh_token
+    await this._setRefreshToken(ctx, tokens);
     return tokens;
   }
 
