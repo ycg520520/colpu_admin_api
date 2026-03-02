@@ -29,10 +29,8 @@ export default class ScheduleController extends Controller {
     const { event, url, rule } = query;
     if (event === 'start') {
       if (!scheduleTaskMap[url]) {
-        console.log(`启动定时任务~`);
         const scheduleTask = schedule.scheduleJob(rule ? rule : '* * * * * *', async () => {
           const startTime = Date.now();
-          console.log(`定时任务开始运行::`, url, startTime);
           if (!rule) {
             scheduleTask.cancel();
             delete scheduleTaskMap[url];
@@ -44,7 +42,6 @@ export default class ScheduleController extends Controller {
             },
             timeout: 0
           });
-          console.log(`定时任务完成运行::`, url, Date.now() - startTime);
         });
         scheduleTaskMap[url] = scheduleTask;
         ctx.respond({ ...query, message: '启动定时任务成功~' });

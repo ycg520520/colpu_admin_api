@@ -219,7 +219,6 @@ export default class UserService extends Base {
       .query(`SELECT uid,isbind FROM third_auth WHERE openid='${openid}'`)
       .then((res) => res[0][0])
       .then(async (res) => {
-        console.log("thirdAuth==>", res);
         let uid;
         // 如果存在用户查询用户，否则就注册一个新用户
         if (res) {
@@ -276,7 +275,6 @@ export default class UserService extends Base {
   // 创建三方授权用户
   async createThirdAuthUser(params) {
     const { openid, unionid, type } = params;
-    console.log(params, "createThirdAuthUser");
     // 三方授权登录直接生成一个默认用户名，用户名以openid
     params.username = `${DEFAULT_USER_PRFIX}${openid}`;
     await this.insertThirdAuth({

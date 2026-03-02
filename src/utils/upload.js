@@ -310,11 +310,11 @@ export function koaBusboy(options) {
         clearProgressMap(upload_id);
       });
 
-      // 计算总请求体大小（近似）
+      // 计算总请求体大小（近似），如需进度可在这里上报到 SSE / WebSocket
       let totalBytes = 0;
       ctx.req.on('data', (chunk) => {
         totalBytes += chunk.length;
-        console.log('chunk', totalBytes, total);
+        // 留空：生产环境不直接打印大体积日志
       });
 
       ctx.req.on('error', (err) => {
