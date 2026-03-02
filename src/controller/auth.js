@@ -31,7 +31,7 @@ export default class AuthController extends Controller {
    *
    * @apiSuccess {String} token_type 返回token类型
    * @apiSuccess {String} access_token 返回token
-   * @apiSuccess {Number} expires_in 返回过期时间，单位毫秒
+   * @apiSuccess {Number} expires_in 剩余有效秒数（OAuth2 标准）
    * @apiSuccess {String} refresh_token 返回刷新令牌
    * @apiSuccess {String} client_id 返回客户端ID
    * @apiSuccess {Array} scope 返回权限范围
@@ -395,7 +395,8 @@ export default class AuthController extends Controller {
     // maxAge 采用毫秒单位，默认 24 小时
     const { maxAge = 864e5 } = this.config.session || {};
     const { client_id } = client || {};
-    const expires_in = Date.now() + maxAge; // 服务器过期时间,以秒为单位
+    // OAuth2 标准：expires_in 为剩余有效秒数
+    const expires_in = Math.floor(maxAge / 1000);
     const signData = {
       id: data.id,
       uid: data.uid,
