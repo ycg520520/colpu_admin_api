@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-17 15:22:39
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-18 20:10:46
+ * @LastEditTime: 2026-03-04 16:22:59
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -10,7 +10,8 @@ import crypto from "crypto";
 import Joi from "joi";
 import { Controller } from "@colpu/core";
 import jwt from "jsonwebtoken";
-const refreshTokenAddMaxAge = 864e5; // 24小时，单位毫秒
+import cryptoUtil from "../utils/crypto.js";
+const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
 export default class AuthController extends Controller {
   /**·
    * @api {post} /token
@@ -254,20 +255,12 @@ export default class AuthController extends Controller {
     if (!token) {
       ctx.throw(401, "No token provided");
     }
-
     // 验证令牌
-    let tokens;
     try {
-      tokens = jwt.verify(token, secretKey);
+      return jwt.verify(token, secretKey);
     } catch (err) {
-      // console.error(err);
       ctx.throw(401, "Invalid token");
     }
-    const now = Date.now() / 1000;
-    if (now < tokens.iat || now > tokens.exp) {
-      ctx.throw(401, "Invalid token");
-    }
-    return tokens;
   }
 
   async _passwordToken(ctx, client) {
@@ -329,15 +322,24 @@ export default class AuthController extends Controller {
   /**
    * @function _refreshToken 刷新令牌
    * @apiParam {Object} ctx Koa上下文
-   * @returns {Object} 返回新的token
+   * @returns {Promise<unknown>} 返回新的token
    */
   async _refreshToken(ctx) {
+    // ctx.throw(500, "服务器错误");
     const validateFunc = ctx.method.toUpperCase() === "GET" ? "query" : "body";
     const { refresh_token, scope } = ctx.validateAsync({
       [validateFunc]: {
-        refresh_token: Joi.string().required(), // 刷新令牌
+        refresh_token: Joi.string().required(), // 刷新令牌;
       }
     });
+
+    // 可选：如果服务端存储了 refresh_token，则要求 refresh_token 必须存在
+    const storeKey = this._refreshTokenKey(refresh_token);
+    const storedStr = await ctx.app.redis.use(0).get(storeKey);
+    if (storedStr) {
+      // 刷新成功后删除旧 refresh_token，实现简单轮换
+      await ctx.app.redis.use(0).del(storeKey);
+    }
 
     // 验证客户端
     const { client, client_id } = await this._getVerifyClient(ctx);
@@ -348,19 +350,16 @@ export default class AuthController extends Controller {
       }
     }
 
-    // 可选：如果服务端存储了 refresh_token，则要求 refresh_token 必须存在
-    const storeKey = `REFRESH_TOKEN:${refresh_token}`;
-    const storedStr = await ctx.app.redis.use(0).get(storeKey);
-    if (storedStr) {
-      // 刷新成功后删除旧 refresh_token，实现简单轮换
-      await ctx.app.redis.use(0).del(storeKey);
-    }
-
     // 生成新的访问令牌
     const tokens = this._generateToken(oldTokens, client, scope);
     // 写入新 refresh_token
     await this._setRefreshToken(ctx, tokens);
     return tokens;
+  }
+
+  _refreshTokenKey(refresh_token) {
+    const md5Name = cryptoUtil.md5(refresh_token);
+    return `REFRESH_TOKEN:${md5Name}`;
   }
 
   /**
@@ -369,18 +368,15 @@ export default class AuthController extends Controller {
    * @apiParam {Object} tokens
    */
   async _setRefreshToken(ctx, tokens) {
-    // refresh_token过期时间为access_token的2倍
     const { maxAge = 864e5 } = this.config.session || {};
-    const refreshTokenExpiry = maxAge + refreshTokenAddMaxAge; // 2小时，单位毫秒
-    const expires_in = Date.now() + refreshTokenExpiry;
-    const refreshTokens = { ...tokens, expires_in };
+    const refreshTokenExpire = maxAge + refreshTokenAddMaxAge;
     await ctx.app.redis
       .use(0)
       .set(
-        `REFRESH_TOKEN:${tokens.refresh_token}`,
-        JSON.stringify(refreshTokens),
+        this._refreshTokenKey(tokens.refresh_token),
+        JSON.stringify(tokens),
         "PX",
-        refreshTokenExpiry
+        refreshTokenExpire
       );
   }
 

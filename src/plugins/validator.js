@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2022-11-25 10:53:20
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2025-11-26 20:34:21
+ * @LastEditTime: 2026-03-04 11:19:04
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -94,7 +94,7 @@ class Validation {
       }
       return false;
     });
-    if (result.error && result.error.message instanceof Error) {
+    if (result.error && result.error instanceof Error) {
       const { status } = options;
       ctx.throw(new ValidationError({ message: result.error.message, status }));
     }
