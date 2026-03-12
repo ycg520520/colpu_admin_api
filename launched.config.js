@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-31 17:37:38
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-01 22:33:32
+ * @LastEditTime: 2026-03-13 07:08:30
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -60,11 +60,11 @@ const LAUNCHED = {
       name,
       script: "./node_modules/@colpu/cli/src/script/service.js",
       cwd: "./",
-      instances: 2,
+      instances: 1,
       max_restarts: 2,
       min_uptime: "1h",
       exec_mode: "cluster",
-      max_memory_restart: "1024M",
+      max_memory_restart: "500M",
       node_args: "--experimental-modules --es-module-specifier-resolution=node",
       env: {
         COMMON_VARIABLE: true,
