@@ -10,6 +10,11 @@
     "deploy": "colpu-cli deploy -g",
     "daemon": "colpu-cli daemon",
     "inspect": "colpu-cli inspect development",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "npm run docs:api && vitepress build docs",
+    "docs:api": "typedoc --options typedoc.json",
+    "docs:preview": "vitepress preview docs",
+    "doc": "apidoc -i src/controller -o docs/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -55,27 +60,17 @@
     "mysql2": "^3.18.2",
     "node-schedule": "^2.1.1",
     "qrcode": "^1.5.4",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.7",
+    "vitepress": "^1.6.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
-  },
-  "apidoc": {
-    "title": "接口文档",
-    "url": "",
-    "contact": "colpu",
-    "description": "后台管理系统接口",
-    "header": {
-      "title": "API基本说明",
-      "filename": "doc/api_header.md"
-    },
-    "footer": {
-      "title": "footer",
-      "filename": "doc/api_footer.md"
-    },
-    "template": {
-      "withCompare": true,
-      "withGenerator": true
-    }
+    "comment-parser": "^1.4.5",
+    "nodemon": "^3.1.14",
+    "typedoc": "^0.28.17",
+    "typedoc-plugin-markdown": "^4.10.0",
+    "vitepress-plugin-group-icons": "^1.7.1",
+    "vitepress-plugin-llms": "^1.11.0",
+    "vitepress-plugin-sidebar-resolve": "^1.2.1",
+    "vitepress-sidebar": "^1.33.1"
   }
 }

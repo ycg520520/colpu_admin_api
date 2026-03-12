@@ -13,3 +13,4 @@ node_modules
 assets
 .config.js
 launched.config.json
+docs

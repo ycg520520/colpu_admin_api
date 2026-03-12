@@ -7,51 +7,51 @@ import { Controller } from "@colpu/core"
 const { STS } = OSS;
 export default class AliSTS extends Controller {
   /**
-     * @api {get} /api/sts 获取阿里STS授权
-     * @apiGroup  阿里OSS
-     * @apiVersion 1.0.0
-     *
-     * @apiParam {String} [filename] 文件名称（可带路径）
-     * @apiParam {String} [type] 授权类型，即RAM访问控制用户RAM 角色名称
-     * @apiParam {Boolean} [rename] 是否重命名，重命名方式为MD5(uuid + filename)
-     * @apiParam {String} [folder] 指定上传到目录
-     * @apiParam {Boolean} [hastime] 是否有时间目录，默认有
-     *
-     * @apiSuccess {Number} status 状态码
-     * @apiSuccess {String} message 消息
-     * @apiSuccess {Object} data 返回数据
-     * @apiSuccess {String} data.bucket bucket名称
-     * @apiSuccess {String} data.region 来自账户bukect对应的region以杭州为例（oss-cn-hangzhou）
-     * @apiSuccess {String} data.endpoint 来自账户bukect对应的 endpoint of upload sts
-     * @apiSuccess {String} data.filepath 用户传filename文件名称（可带路径），通过转换后输出给授权路径filepath，这里可以做对应的操作，比如对用户做特定目录指定
-     * @apiSuccess {String} data.domain 域名 授权域名
-     * @apiSuccess {String} data.viewUrl 预览连接地址
-     * @apiSuccess {Object} data.token 上传token
-     * @apiSuccess {String} data.token.accessKeyId 来源与STS令牌 AccessKeyId
-     * @apiSuccess {String} data.token.accessKeySecret 来源与STS令牌 AccessKeySecret
-     * @apiSuccess {String} data.token.expiration 来源与STS令牌 Expiration
-     * @apiSuccess {String} data.token.securityToken 来源与STS令牌 SecurityToken
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *    {
-            "data": {
-                "bucket": "colpu-file",
-                "region": "oss-cn-hangzhou",
-                "endpoint": "oss-cn-hangzhou.aliyuncs.com",
-                "filePath": "spss/2.jpg",
-                "domain": "//test.domian.com",
-                "viewUrl": "//test.domian.com/spss/2.jpg",
-                "token": {
-                    "securityToken": "CAISmQJ1q6Ft5B2yfSjIr5fkOonct7gT9Je...",
-                    "accessKeyId": "STS.NTQq3hZg2CUTSbmoeTqp3H85k",
-                    "accessKeySecret": "86fdeS8jw9cvDN2Xq6oHTMmPLUGNNse74p3R3xMdsDde",
-                    "expiration": "2020-05-19T10:51:20Z"
-                }
-            },
-            "status": 0,
-            "message": " ok"
-        }
-     */
+   * @api {get} /api/sts 获取阿里STS授权
+   * @apiGroup  阿里OSS
+   * @apiVersion 1.0.0
+   *
+   * @apiParam {String} [filename] 文件名称（可带路径）
+   * @apiParam {String} [type] 授权类型，即RAM访问控制用户RAM 角色名称
+   * @apiParam {Boolean} [rename] 是否重命名，重命名方式为MD5(uuid + filename)
+   * @apiParam {String} [folder] 指定上传到目录
+   * @apiParam {Boolean} [hastime] 是否有时间目录，默认有
+   *
+   * @apiSuccess {Number} status 状态码
+   * @apiSuccess {String} message 消息
+   * @apiSuccess {Object} data 返回数据
+   * @apiSuccess {String} data.bucket bucket名称
+   * @apiSuccess {String} data.region 来自账户bukect对应的region以杭州为例（oss-cn-hangzhou）
+   * @apiSuccess {String} data.endpoint 来自账户bukect对应的 endpoint of upload sts
+   * @apiSuccess {String} data.filepath 用户传filename文件名称（可带路径），通过转换后输出给授权路径filepath，这里可以做对应的操作，比如对用户做特定目录指定
+   * @apiSuccess {String} data.domain 域名 授权域名
+   * @apiSuccess {String} data.viewUrl 预览连接地址
+   * @apiSuccess {Object} data.token 上传token
+   * @apiSuccess {String} data.token.accessKeyId 来源与STS令牌 AccessKeyId
+   * @apiSuccess {String} data.token.accessKeySecret 来源与STS令牌 AccessKeySecret
+   * @apiSuccess {String} data.token.expiration 来源与STS令牌 Expiration
+   * @apiSuccess {String} data.token.securityToken 来源与STS令牌 SecurityToken
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "data": {
+   *       "bucket": "colpu-file",
+   *       "region": "oss-cn-hangzhou",
+   *       "endpoint": "oss-cn-hangzhou.aliyuncs.com",
+   *       "filePath": "spss/2.jpg",
+   *       "domain": "//test.domian.com",
+   *       "viewUrl": "//test.domian.com/spss/2.jpg",
+   *       "token": {
+   *           "securityToken": "CAISmQJ1q6Ft5B2yfSjIr5fkOonct7gT9Je...",
+   *           "accessKeyId": "STS.NTQq3hZg2CUTSbmoeTqp3H85k",
+   *           "accessKeySecret": "86fdeS8jw9cvDN2Xq6oHTMmPLUGNNse74p3R3xMdsDde",
+   *           "expiration": "2020-05-19T10:51:20Z"
+   *       }
+   *   },
+   *   "status": 0,
+   *   "message": " ok"
+   * }
+   */
   async assumeRole(ctx) {
     // 参数验证
     ctx.validateAsync({

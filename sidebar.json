@@ -1,0 +1,112 @@
+[
+  {
+    "text": "cms",
+    "items": [
+      {
+        "text": "article",
+        "link": "/api/cms/article"
+      },
+      {
+        "text": "classify",
+        "link": "/api/cms/classify"
+      },
+      {
+        "text": "frags",
+        "link": "/api/cms/frags"
+      },
+      {
+        "text": "friend",
+        "link": "/api/cms/friend"
+      },
+      {
+        "text": "notice",
+        "link": "/api/cms/notice"
+      },
+      {
+        "text": "sites",
+        "link": "/api/cms/sites"
+      },
+      {
+        "text": "slider",
+        "link": "/api/cms/slider"
+      },
+      {
+        "text": "spider",
+        "link": "/api/cms/spider"
+      },
+      {
+        "text": "tags",
+        "link": "/api/cms/tags"
+      }
+    ],
+    "collapsed": true
+  },
+  {
+    "text": "oss",
+    "items": [
+      {
+        "text": "scan",
+        "link": "/api/oss/scan"
+      },
+      {
+        "text": "sts",
+        "link": "/api/oss/sts"
+      }
+    ],
+    "collapsed": true
+  },
+  {
+    "text": "sys",
+    "items": [
+      {
+        "text": "auth",
+        "link": "/api/sys/auth"
+      },
+      {
+        "text": "departments",
+        "link": "/api/sys/departments"
+      },
+      {
+        "text": "dict",
+        "link": "/api/sys/dict"
+      },
+      {
+        "text": "logger",
+        "link": "/api/sys/logger"
+      },
+      {
+        "text": "menus",
+        "link": "/api/sys/menus"
+      },
+      {
+        "text": "permission",
+        "link": "/api/sys/permission"
+      },
+      {
+        "text": "post",
+        "link": "/api/sys/post"
+      },
+      {
+        "text": "roles",
+        "link": "/api/sys/roles"
+      },
+      {
+        "text": "schedule",
+        "link": "/api/sys/schedule"
+      },
+      {
+        "text": "upload",
+        "link": "/api/sys/upload"
+      },
+      {
+        "text": "users",
+        "link": "/api/sys/users"
+      },
+      {
+        "text": "wechat",
+        "link": "/api/sys/wechat"
+      }
+    ],
+    "collapsed": true
+  }
+]

@@ -2,8 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-17 15:22:39
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-04 16:22:59
- * @
+ * @LastEditTime: 2026-03-11 15:36:25
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import crypto from "crypto";
@@ -30,22 +29,16 @@ export default class AuthController extends Controller {
    * @apiBody {String} [redirect_uri] 重定向URI (可选)
    * @apiBody {String} [refresh_token] 刷新令牌 (可选)
    *
-   * @apiSuccess {String} token_type 返回token类型
-   * @apiSuccess {String} access_token 返回token
-   * @apiSuccess {Number} expires_in 剩余有效秒数（OAuth2 标准）
-   * @apiSuccess {String} refresh_token 返回刷新令牌
-   * @apiSuccess {String} client_id 返回客户端ID
-   * @apiSuccess {Array} scope 返回权限范围
    * @apiSuccessExample {json} Success-Response:
-   *  HTTP/1.1 200 OK
-   *  {
-   *    "token_type": "Bearer",
-   *    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-   *    "expires_in": 3600,
-   *    "refresh_token": "def50200e5b0...",
-   *    "client_id": "client_id",
-   *    "scope": ["scope"]
-   *  }
+   * HTTP/1.1 200 OK
+   * {
+   *   "token_type": "Bearer", // 返回token类型
+   *   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // 返回token
+   *   "expires_in": 3600, // 剩余有效秒数（OAuth2 标准）
+   *   "refresh_token": "def50200e5b0...", // 返回刷新令牌
+   *   "client_id": "client_id", // 返回客户端ID
+   *   "scope": ["scope"] // 返回权限范围
+   * }
    */
 
   async token(ctx) {
@@ -114,18 +107,17 @@ export default class AuthController extends Controller {
    * @apiParam {String} [scope] 授权范围 (可选) [api:read, api:write]
    * @apiParam {String} [state] 状态 (可选) [任意值，原样返回]， 防CSRF攻击：使用state参数验证请求来源，确保授权请求和回调来自同一会话
    * @apiHeader {String} Authorization 授权获取的access_token (可选，仅隐式模式需要)
-   * @apiSuccessExample {json} Success-Response:
-   *  HTTP/1.1 302 Found
-   *  // 授权码模式
-   *  Location: https://client.example.com/cb?code=AUTH_CODE&state=xyz
-   *  // 隐式模式
-   *  Location: https://client.example.com/cb?access_token=ACCESS_TOKEN&token_type=Bearer&expires_in=3600&state=xyz
+   * @apiExample {text} Success-Response:
+   * 授权码模式
+   * Location: https://client.example.com/cb?code=AUTH_CODE&state=xyz
+   * 隐式模式
+   * Location: https://client.example.com/cb?access_token=ACCESS_TOKEN&token_type=Bearer&expires_in=3600&state=xyz
    * @apiErrorExample {json} Error-Response:
-   *  HTTP/1.1 401 Unauthorized
-   *  {
-   *    "error": "invalid_grant",
-   *    "error_description": "Invalid authorization code"
-   *  }
+   * HTTP/1.1 401 Unauthorized
+   * {
+   *   "error": "invalid_grant",
+   *   "error_description": "Invalid authorization code"
+   * }
    */
   async authorize(ctx) {
     ctx.validateAsync({

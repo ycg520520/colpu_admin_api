@@ -1,0 +1,17 @@
+{
+  "entryPoints": [
+    "src/controller/**/*.js"
+  ],
+  "out": "docs",
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "vitepress-plugin-group-icons",
+    "vitepress-plugin-llms",
+  ],
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "includeVersion": true,
+  "gitRevision": "main",
+  "skipErrorChecking": true
+}

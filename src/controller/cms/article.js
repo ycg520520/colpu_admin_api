@@ -2,8 +2,7 @@
  * @Author: colpu
  * @Date: 2025-12-15 21:15:03
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-01-14 08:48:00
- * @
+ * @LastEditTime: 2026-03-11 16:35:51
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import { Controller } from "@colpu/core";
