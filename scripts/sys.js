@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-12-15 16:22:53
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2025-12-15 16:28:07
+ * @LastEditTime: 2026-03-24 16:52:41
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -14,7 +14,7 @@
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { db, users, menus, dictTypes, dictData, roles, departments, post, permissions } from '../src/models/sys/index.js';
+import { db, users, menus, dictTypes, dictData, roles, departments, post, permissions, clients } from '../src/models/sys/index.js';
 export default async () => {
   console.log('🚀 Starting MySQL data initialization...');
   try {
@@ -84,6 +84,10 @@ export default async () => {
     for (const item of (await import('./data/sys/user_permission.js')).default) {
       const perm = await permissions.findByPk(item.perm_id);
       await perm.addUsers([item.user_id]);
+    }
+
+    for (const item of (await import('./data/sys/clients.js')).default) {
+      await clients.create(item);
     }
 
     // 创建客户端

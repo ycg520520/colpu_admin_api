@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-18 08:23:14
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-01-17 16:57:58
+ * @LastEditTime: 2026-03-24 22:43:51
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -28,7 +28,6 @@ export default (sequelize) => {
         this.setDataValue('id', uuidValue);
       }
     },
-
     uid: {
       type: DataTypes.STRING(32),
       allowNull: false,
@@ -118,6 +117,12 @@ export default (sequelize) => {
       type: DataTypes.STRING(500),  // 字符串类型，长度500
       comment: '描述'  // 字段注释
     },
+    lock_username: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      comment: "锁定用户名，0-不锁的，1-锁定",
+    },
   },
     {
       tableName: "users",
@@ -168,6 +173,13 @@ export default (sequelize) => {
           }
         },
         beforeValidate: (user, options) => {
+          if (!user.id) {
+            user.id = user.generateUID(Date.now() + Math.random());
+          }
+          // 插入前检查用户名是否可编辑
+          if (user.username.indexOf('@AU@_') === 0) {
+            user.lock_username = false;
+          }
           // 在验证前处理数据
           if (!user.uid && user.username) {
             user.uid = user.generateUID(user.username);

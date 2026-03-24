@@ -2,13 +2,11 @@
  * @Author: colpu
  * @Date: 2026-02-13 22:42:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-14 14:17:03
+ * @LastEditTime: 2026-03-24 11:30:46
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
-import urllib from 'urllib';
 import { stringify } from 'querystring';
-import axios from 'axios';
 class AccessToken {
   constructor(data) {
     if (!(this instanceof AccessToken)) {
@@ -57,7 +55,9 @@ export default class WechatOAuth {
     // 这里的store是一个简单的内存对象，用于存储token、state数据。在生产环境中，你应该使用一个更持久化的存储方案，比如数据库或者Redis。
     this.store = new Map(); // 存储state -> 状态码 的映射
     this.setOptions(options);
-    this.defaults = {};
+    this.defaults = {
+      method: 'GET',
+    };
   }
 
   setOptions(options) {
@@ -79,7 +79,7 @@ export default class WechatOAuth {
   }
 
   /**
-   * 用于设置urllib的默认options
+   * 用于设置request的默认options
    *
    * Examples:
    * ```
@@ -92,44 +92,39 @@ export default class WechatOAuth {
   }
 
   /**
-   * urllib的封装
+   * fetch的封装
    *
    * @param {String} url 路径
-   * @param {Object} opts urllib选项
+   * @param {Object} opts fetch选项
    */
-  async request(url, opts) {
-    const options = {};
-    Object.assign(options, this.defaults);
-    opts || (opts = {});
-    for (let key in opts) {
-      if (key !== 'headers') {
-        options[key] = opts[key];
-      } else {
-        if (opts.headers) {
-          options.headers = options.headers || {};
-          Object.assign(options.headers, opts.headers);
-        }
+  async request(url, ...args) {
+    if (!url.startsWith('http')) {
+      url = this.baseApi + url;
+    }
+    const options = Object.assign({}, this.defaults, args[1] || {});
+    const body = args[0];
+    const { method = 'GET' } = options;
+    if (['GET', 'DELETE'].includes(method)) {
+      const u = new URL(url)
+      for (const key in body) {
+        u.searchParams.set(key, body[key]);
       }
+      url = u.toString();
+    } else {
+      options.body = JSON.stringify(body);
     }
 
-    let result;
-    try {
-      result = await urllib.request(url, options);
-    } catch (err) {
-      err.name = 'WeChatAPI' + err.name;
-      throw err;
-    }
-
-    const data = result.data;
-
-    if (data.errcode) {
-      const err = new Error(data.errmsg);
-      err.name = 'WeChatAPIError';
-      err.code = data.errcode;
-      throw err;
-    }
-
-    return data;
+    return fetch(url, options)
+      .then(response => response.json())
+      .then(data => {
+        if (data.errcode) {
+          const err = new Error(data.errmsg);
+          err.name = 'WeChatAPIError';
+          err.code = data.errcode;
+          return Promise.reject(err);
+        }
+        return data;
+      });
   }
 
   /**
@@ -189,8 +184,8 @@ export default class WechatOAuth {
    */
   async getQrCodeTicketURL(scene_id) {
     const { access_token } = await this.getAccessToken();
-    const url = `${this.baseApi}/cgi-bin/qrcode/create?access_token=${access_token}`;
-    const params = {
+    const url = `/cgi-bin/qrcode/create?access_token=${access_token}`;
+    const data = {
       expire_seconds: 1800, // 过期时间，单位为秒，最大不超过1800
       action_name: 'QR_LIMIT_SCENE',
       action_info: {
@@ -199,7 +194,7 @@ export default class WechatOAuth {
         }
       }
     };
-    const res = await axios.post(url, params);
+    const res = await this.request(url, data);
     const qrcodeUrl = `${this.mpApi}/cgi-bin/showqrcode?ticket=${encodeURIComponent(res.ticket)}`;
     return qrcodeUrl;
   }
@@ -253,29 +248,23 @@ export default class WechatOAuth {
    * @param {String} [code] 授权获取到的code
    */
   async getAccessToken(code) {
-    let url = `${this.baseApi}/sns/oauth2/access_token`;
-    const info = {
+    let url = `/sns/oauth2/access_token`;
+    const data = {
       appid: this.appId,
       secret: this.appSecret,
       grant_type: 'authorization_code'
     };
     if (code) {
-      info.code = code;
+      data.code = code;
     } else {
-      url = `${this.baseApi}/cgi-bin/token`;
-      info.grant_type = 'client_credential'
+      url = `/cgi-bin/token`;
+      data.grant_type = 'client_credential'
     }
-
-    const args = {
-      data: info,
-      dataType: 'json'
-    };
-
-    const data = await this.request(url, args);
+    const res = await this.request(url, data);
     if (code) {
-      return this.processToken(data);
+      return this.processToken(res);
     }
-    return data;
+    return res;
   }
 
   /**
@@ -303,33 +292,24 @@ export default class WechatOAuth {
    * @param {String} refreshToken refreshToken
    */
   async refreshAccessToken(refreshToken) {
-    const url = `${this.baseApi}/sns/oauth2/refresh_token`;
-    const info = {
+    const url = `/sns/oauth2/refresh_token`;
+    const data = {
       appid: this.appId,
       grant_type: 'refresh_token',
       refresh_token: refreshToken
     };
-    const args = {
-      data: info,
-      dataType: 'json'
-    };
-
-    const data = await this.request(url, args);
-    return this.processToken(data);
+    const res = await this.request(url, data);
+    return this.processToken(res);
   }
 
   async _getUserInfo(options, accessToken) {
-    const url = `${this.baseApi}/sns/userinfo`;
-    const info = {
+    const url = `/sns/userinfo`;
+    const data = {
       access_token: accessToken,
       openid: options.openid,
       lang: options.lang || 'en'
     };
-    const args = {
-      data: info,
-      dataType: 'json'
-    };
-    return this.request(url, args);
+    return this.request(url, data);
   }
 
   /**
@@ -398,16 +378,12 @@ export default class WechatOAuth {
   }
 
   async _verifyToken(openid, accessToken) {
-    const url = `${this.baseApi}/sns/auth`;
-    const info = {
+    const url = `/sns/auth`;
+    const data = {
       access_token: accessToken,
       openid: openid
     };
-    const args = {
-      data: info,
-      dataType: 'json'
-    };
-    return await this.request(url, args);
+    return await this.request(url, data);
   }
 
   /**
@@ -441,5 +417,32 @@ export default class WechatOAuth {
   async getUserInfoByCode(code) {
     var token = await this.getAccessToken(code);
     return await this.getUserInfo(token.data.openid);
+  }
+
+  /**
+   * 获取小程序登录用户登录信息
+   * @description 获取微信session
+   * 登录凭证校验。通过wx.login接口获得临时登录凭证code后传到开发者服务器调用此接口完成登录流程。
+   * 文档地址：https://developers.weixin.qq.com/minigame/dev/api-backend/open-api/login/auth.code2Session.html#%E8%AF%B7%E6%B1%82%E5%9C%B0%E5%9D%80
+   * @param {*} code 
+   * @returns 
+   * {
+   * "openid": "OPENID",
+   * "session_key": "SESSIONKEY",
+   * "unionid": "UNIONID"
+   * "errcode": 40029,
+   * "errmsg": "invalid code"
+   * }
+   */
+  code2Session(code) {
+    const url = `/sns/jscode2session`;
+    const data =
+    {
+      grant_type: "authorization_code",
+      appid: this.appId,
+      secret: this.appSecret,
+      js_code: code,
+    };
+    return this.request(url, data);
   }
 }

@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-10-28 22:06:05
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-01-17 11:29:59
+ * @LastEditTime: 2026-03-24 21:31:35
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -11,7 +11,7 @@ import { dictDataModel, dictTypesModel } from "./dict.js";
 import { languagesModel, translationsModel } from "./languages.js";
 
 export const db = DbInstances.mysql;
-const sysdb = db.use("colpusys");
+export const sysdb = db.use("colpusys"); // 导出sequelize实例
 
 // 用户表
 export const users = (await import("./users.js")).default(sysdb);
@@ -61,6 +61,10 @@ export const logger = (await import("./logger.js")).default(sysdb);
 // export const roleMenus = (await import("./role_menus.js")).default(sysdb, roles, menus);
 // 数据权限范围表
 // export const rolePermissionScope = (await import("./role_permission_scope.js")).default(sysdb);
+
+export const thirdAuth = (await import("./third_auth.js")).default(sysdb);
+export const userThirdAuth = (await import("./user_third_auth.js")).default(sysdb);
+
 
 // 用户角色权限关联关系
 roles.belongsToMany(users, {
@@ -121,6 +125,23 @@ post.belongsToMany(users, {
   foreignKey: 'post_id',
   otherKey: 'user_id',
 })
+
+// 用户授权（三方授权）关联关系
+users.belongsToMany(thirdAuth, {
+  through: userThirdAuth,
+  foreignKey: 'user_id',        // userThirdAuth 中指向 User 的字段
+  otherKey: 'openid',           // userThirdAuth 中指向 ThirdAuth 的字段
+  sourceKey: 'id',              // User 使用主键 id 作为关联源
+  targetKey: 'openid',          // ThirdAuth 使用 openid 作为关联目标
+});
+
+thirdAuth.belongsToMany(users, {
+  through: userThirdAuth,
+  foreignKey: 'openid',
+  otherKey: 'user_id',
+  sourceKey: 'openid',
+  targetKey: 'id',
+});
 
 // belongsToMany 是多对多关系，需要通过中间表来建立关联关系
 // sourceKey 不适用belongsToMany，因为belongsToMany会自动使用主键作为关联字段

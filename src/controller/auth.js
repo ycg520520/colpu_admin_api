@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-17 15:22:39
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-11 15:36:25
+ * @LastEditTime: 2026-03-24 22:36:09
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import crypto from "crypto";
@@ -10,6 +10,7 @@ import Joi from "joi";
 import { Controller } from "@colpu/core";
 import jwt from "jsonwebtoken";
 import cryptoUtil from "../utils/crypto.js";
+import WechatOAuth from '../utils/wechat_oauth.js';
 const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
 export default class AuthController extends Controller {
   /**·
@@ -19,7 +20,7 @@ export default class AuthController extends Controller {
    * @apiGroup Auth
    * @apiVersion  1.0.0
    *
-   * @apiBody {String} grant_type 授权类型 [code, password, credentials, refresh_token]
+   * @apiBody {String} grant_type 授权类型 [code, password, credentials, refresh_token, applet]
    * @apiBody {String} [client_id] 客服端ID (可选)
    * @apiBody {String} [code] 授权码code模式，需要传递code (可选)
    * @apiBody {String} [scope] 授权范围，多个用;分隔 (可选)
@@ -83,6 +84,9 @@ export default class AuthController extends Controller {
       // 刷新令牌
       case "refresh_token":
         tokens = await this._refreshToken(ctx);
+        break;
+      case "applet":
+        tokens = await this._appletToken(ctx, client);
         break;
       default:
         ctx.throw(401, "没有参数: grant_type");
@@ -312,6 +316,39 @@ export default class AuthController extends Controller {
   }
 
   /**
+   * @function appletToken 小程序授权登陆获取Token
+   * @apiBody {String} code wx.login 获得的临时code
+   * @apiBody {String} client_id 对应小程序的appId
+   */
+  async _appletToken(ctx, client) {
+    const validateFunc = ctx.method.toUpperCase() === "GET" ? "query" : "body";
+    const { code, scope } = ctx.validateAsync({
+      [validateFunc]: {
+        code: Joi.string().required(),
+        scope: Joi.string().optional().allow("", null),
+      },
+    });
+
+    const api = new WechatOAuth({
+      appId: client.client_id,
+      appSecret: client.secret_key,
+      redirectUri: client.redirect_uris, // ??? 这里需要调整
+    });
+    const res = await api.code2Session(code);
+    const { session_key, openid, unionid } = res;
+    if (!session_key) {
+      ctx.throw(10004, "需要重新配置微信环境白名单IP地址");
+    }
+    const userInfo = await this.service.third.create({
+      openid,
+      unionid,
+      type: 1,
+    });
+    const tokens = this._generateToken(userInfo, client, scope);
+    return tokens;
+  }
+
+  /**
    * @function _refreshToken 刷新令牌
    * @apiParam {Object} ctx Koa上下文
    * @returns {Promise<unknown>} 返回新的token
@@ -418,8 +455,11 @@ export default class AuthController extends Controller {
    * @returns {String} 返回权限scope
    */
   _validateScopes(clientScopes, reqScopes) {
+    if (clientScopes.length === 0) {
+      return ['*']; // 默认返回客户端所有权限
+    }
     if (reqScopes.length === 0) {
-      return clientScopes || ['all']; // 默认返回客户端所有权限
+      return [];  // 默认返回空，即没有权限
     }
     return reqScopes.filter((scope) => clientScopes.includes(scope));
   }

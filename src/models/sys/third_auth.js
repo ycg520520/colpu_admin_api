@@ -1,26 +1,20 @@
 /**
  * @Author: colpu
- * @Date: 2026-02-13 22:13:42
+ * @Date: 2026-02-13 22:23:35
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-13 22:22:39
+ * @LastEditTime: 2026-03-24 15:43:02
  * @
- * @Copyright (c) 2026 by colpu, All Rights Reserved.
+ * @Copyright (c) 2026 by colpu, All Rights Reserved. 
  */
 
 import { DataTypes } from "sequelize";
 export default (sequelize) => {
-  const UserAuth = sequelize.define('UserAuth', {
+  const ThirdAuth = sequelize.define('ThirdAuth', {
     id: {
-      type: DataTypes.STRING(32),
+      type: DataTypes.BIGINT,
       primaryKey: true,
-      allowNull: false,
       autoIncrement: true,
       comment: "用户认证ID",
-    },
-    uid: {
-      type: DataTypes.STRING(32),
-      allowNull: false,
-      comment: "用户uid唯一值",
     },
     type: {
       type: DataTypes.TINYINT,
@@ -47,7 +41,7 @@ export default (sequelize) => {
     },
   },
     {
-      tableName: "user_auths",
+      tableName: "third_auth",
       comment: "用户认证表",
       underscored: true,
       createdAt: 'created_at',
@@ -78,17 +72,11 @@ export default (sequelize) => {
         unique: true,
         using: 'BTREE',
         fields: ['unionid']
-      },
-      {
-        name: 'uid_UNIQUE',
-        unique: true,
-        using: 'BTREE',
-        fields: ['uid']
       }],
       hooks: {
       },
     }
   );
-  return UserAuth;
+  return ThirdAuth;
 }
 
