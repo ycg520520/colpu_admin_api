@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-17 15:22:39
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-24 22:36:09
+ * @LastEditTime: 2026-03-25 20:37:53
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import crypto from "crypto";
@@ -11,7 +11,8 @@ import { Controller } from "@colpu/core";
 import jwt from "jsonwebtoken";
 import cryptoUtil from "../utils/crypto.js";
 import WechatOAuth from '../utils/wechat_oauth.js';
-const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
+// const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
+const refreshTokenAddMaxAge = 10e3; // 2小时，单位毫秒
 export default class AuthController extends Controller {
   /**·
    * @api {post} /token
@@ -43,30 +44,13 @@ export default class AuthController extends Controller {
    */
 
   async token(ctx) {
-    const validateFunc = ctx.method.toUpperCase() === "GET" ? "query" : "body";
-    const { grant_type, client_id, scope } = ctx.validateAsync({
-      [validateFunc]: {
+    const validateType = this._getValidateType(ctx);
+    const { grant_type } = ctx.validateAsync({
+      [validateType]: {
         grant_type: Joi.string().required(), // 授权类型
-        client_id: Joi.string().optional().allow("", null), // 客户端ID
       },
     });
-
-    let client = this.config.jwt;
-    if (client_id) {
-      // 从数据库加载客户端配置
-      client = await this.service.clients.findOne(client_id);
-      if (!client) {
-        ctx.throw(401, "Invalid client_id");
-      }
-
-      // 验证权限范围
-      const reqScopes = scope ? scope.split(";") : []; // 请求scope
-      const authScopes = this._validateScopes(client.scope || [], reqScopes);
-      if (!authScopes.length && reqScopes.length) {
-        ctx.throw(401, "Invalid scope");
-      }
-    }
-
+    const client = await this._getVerifyClient(ctx);
     let tokens;
     switch (grant_type) {
       // 授权码模式
@@ -124,7 +108,7 @@ export default class AuthController extends Controller {
    * }
    */
   async authorize(ctx) {
-    ctx.validateAsync({
+    const { grant_type, client_id, redirect_uri, scope, state } = ctx.validateAsync({
       query: {
         grant_type: Joi.string().required(),
         client_id: Joi.string().required(),
@@ -133,8 +117,6 @@ export default class AuthController extends Controller {
         state: Joi.string().optional().allow("", null),
       },
     });
-
-    const { grant_type, client_id, redirect_uri, scope, state } = ctx.query;
 
     // 验证客户端
     const client = await this.service.clients.findOne(client_id);
@@ -211,39 +193,22 @@ export default class AuthController extends Controller {
    * @returns
    */
   async verify(ctx) {
-    const tokens = await this._verify(ctx);
+    const tokens = await this._verifyToken(ctx);
     ctx.respond({ valid: true, uid: tokens.uid }, 0, "验证通过");
   }
 
-  async _verify(ctx) {
+  async _verifyToken(ctx) {
     // 验证客户端
-    const { client, client_id } = await this._getVerifyClient(ctx);
+    const client = await this._getVerifyClient(ctx);
     // 验证token
     const token = ctx.headers.authorization?.split(" ")[1];
     const tokens = this._getVerifyToken(ctx, token, client.secret_key);
-    if (client_id) {
-      if (!this._validateClientId(tokens.client_id, client_id)) {
+    if (client.client_id) {
+      if (!this._validateClientId(tokens.client_id, client.client_id)) {
         ctx.throw(401, "Invalid client_id");
       }
     }
     return tokens;
-  }
-
-  async _getVerifyClient(ctx) {
-    // 验证客户端
-    const { client_id } = ctx.validateAsync({
-      query: {
-        client_id: Joi.string().optional().allow("", null),
-      },
-    });
-    let client = this.config.jwt;
-    if (client_id) {
-      client = await this.service.clients.findOne(client_id);
-      if (!client) {
-        ctx.throw(401, "Invalid client_id");
-      }
-    }
-    return { client, client_id };
   }
 
   _getVerifyToken(ctx, token, secretKey) {
@@ -321,9 +286,9 @@ export default class AuthController extends Controller {
    * @apiBody {String} client_id 对应小程序的appId
    */
   async _appletToken(ctx, client) {
-    const validateFunc = ctx.method.toUpperCase() === "GET" ? "query" : "body";
+    const validateType = this._getValidateType(ctx);
     const { code, scope } = ctx.validateAsync({
-      [validateFunc]: {
+      [validateType]: {
         code: Joi.string().required(),
         scope: Joi.string().optional().allow("", null),
       },
@@ -355,9 +320,9 @@ export default class AuthController extends Controller {
    */
   async _refreshToken(ctx) {
     // ctx.throw(500, "服务器错误");
-    const validateFunc = ctx.method.toUpperCase() === "GET" ? "query" : "body";
+    const validateType = this._getValidateType(ctx);
     const { refresh_token, scope } = ctx.validateAsync({
-      [validateFunc]: {
+      [validateType]: {
         refresh_token: Joi.string().required(), // 刷新令牌;
       }
     });
@@ -371,12 +336,10 @@ export default class AuthController extends Controller {
     }
 
     // 验证客户端
-    const { client, client_id } = await this._getVerifyClient(ctx);
+    const client = await this._getVerifyClient(ctx);
     const oldTokens = this._getVerifyToken(ctx, refresh_token, client.secret_key);
-    if (client_id) {
-      if (!this._validateClientId(oldTokens.client_id, client_id)) {
-        ctx.throw(401, "Invalid client_id");
-      }
+    if (client.client_id !== oldTokens.client_id) {
+      ctx.throw(401, "Invalid client_id");
     }
 
     // 生成新的访问令牌
@@ -448,6 +411,34 @@ export default class AuthController extends Controller {
     };
   }
 
+
+  async _getClient(ctx) {
+
+  }
+
+  async _getVerifyClient(ctx) {
+    let client = this.config.jwt;
+    const validateType = this._getValidateType(ctx);
+    const { scope } = ctx.validateAsync({
+      [validateType]: {
+        scope: Joi.string().optional().allow("", null),
+      },
+    });
+    const client_id = ctx.headers['x-client-id'] || ctx.query.client_id;
+    if (client_id) {
+      // 从数据库加载客户端配置
+      client = await this.service.clients.findOne(client_id);
+      if (!client) {
+        ctx.throw(401, "Invalid client_id");
+      }
+
+      // 验证权限范围
+      this._validateScopes(client.scope || [], (scope || '').split(";"));
+
+    }
+    return client;
+  }
+
   /**
    * @function _validateScopes 验证权限范围
    * @apiParam {Array} clientScopes 客服端scope
@@ -455,13 +446,15 @@ export default class AuthController extends Controller {
    * @returns {String} 返回权限scope
    */
   _validateScopes(clientScopes, reqScopes) {
+    let authScopes = [];
     if (clientScopes.length === 0) {
-      return ['*']; // 默认返回客户端所有权限
+      authScopes = ['*']; // 默认返回客户端所有权限
+    } else {
+      authScopes = reqScopes.filter((scope) => clientScopes.includes(scope));
     }
-    if (reqScopes.length === 0) {
-      return [];  // 默认返回空，即没有权限
+    if (!authScopes.length && reqScopes.length) {
+      ctx.throw(401, "Invalid scope");
     }
-    return reqScopes.filter((scope) => clientScopes.includes(scope));
   }
 
   _validateClientId(client_id, req_client_id) {
@@ -469,5 +462,9 @@ export default class AuthController extends Controller {
     if (!client_id || !req_client_id) return true;
     if (client_id === req_client_id) return true;
     return false;
+  }
+
+  _getValidateType(ctx) {
+    return ctx.method.toUpperCase() === "GET" ? "query" : "body";
   }
 }

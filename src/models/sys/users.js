@@ -174,7 +174,7 @@ export default (sequelize) => {
         },
         beforeValidate: (user, options) => {
           if (!user.id) {
-            user.id = user.generateUID(Date.now() + Math.random());
+            user.id = user.generateUID(Date.now() + Math.random()).toLocaleLowerCase();
           }
           // 插入前检查用户名是否可编辑
           if (user.username.indexOf('@AU@_') === 0) {

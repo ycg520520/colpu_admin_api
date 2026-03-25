@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2023-08-09 23:43:44
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2025-12-01 21:22:19
+ * @LastEditTime: 2026-03-25 17:16:35
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -29,7 +29,7 @@ export default async function verify(ctx, next) {
     // ctx.state.user = jwt.verify(accessToken, jwtConf.secret);
 
     // 方法2: 调用本地控制器，优化请求，适用于接口在同一服务上
-    // const user = await controller.auth._verify(ctx);
+    // const user = await controller.auth._verifyToken(ctx);
     // ctx.state.user = user;
 
     // 方法3: 远程验证 (更安全)
@@ -41,7 +41,7 @@ export default async function verify(ctx, next) {
     // });
 
     // 方法4: 本服务直接调用控制器方法 (最高效, 更安全)
-    const user = await ctx.app.controller.auth._verify(ctx);
+    const user = await ctx.app.controller.auth._verifyToken(ctx);
     ctx.state.user = user;
   } catch (error) {
     ctx.throw(401, error.message || "Invalid token");

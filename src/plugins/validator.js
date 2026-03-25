@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2022-11-25 10:53:20
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-04 11:19:04
+ * @LastEditTime: 2026-03-25 20:12:40
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -11,7 +11,7 @@ import Joi from "joi";
 class ValidationError extends Error {
   constructor(errors) {
     super(errors.message);
-    this.status = errors.status || 422;
+    this.status = errors.status || 10001;
     this.errors = errors;
   }
 }
