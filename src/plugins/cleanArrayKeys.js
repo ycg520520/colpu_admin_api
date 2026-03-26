@@ -2,9 +2,9 @@
  * @Author: colpu
  * @Date: 2025-11-26 20:42:17
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2025-11-26 22:53:38
+ * @LastEditTime: 2026-03-26 11:54:58
  * @
- * @Copyright (c) 2025 by colpu, All Rights Reserved. 
+ * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import qs from 'qs';
 // 清理数组键名
@@ -33,9 +33,10 @@ function convertValue(value) {
   if (typeof value === 'string') {
     if (/^\d+$/.test(value)) return parseInt(value, 10);
     if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    if (value === 'null') return null;
+    // 这里对true和false进行转换后，内部实现的query会将其转换为空值，所以这里不再处理
+    // if (value === 'true') return true;
+    // if (value === 'false') return false;
+    // if (value === 'null') return null;
   }
   return value;
 }

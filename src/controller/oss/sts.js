@@ -54,18 +54,6 @@ export default class AliSTS extends Controller {
    */
   async assumeRole(ctx) {
     // 参数验证
-    ctx.validateAsync({
-      query: {
-        bucket: Joi.string().allow(null, ""),
-        type: Joi.string().allow(null, ""),
-        filename: Joi.string().allow(null, ""),
-        rename: Joi.boolean(),
-        folder: Joi.string().allow(null, ""),
-        hastime: Joi.boolean(),
-      },
-      status: 10001,
-    });
-
     let {
       bucket: aliossType = "default",
       type = "file",
@@ -73,7 +61,18 @@ export default class AliSTS extends Controller {
       rename = false,
       folder = "",
       hastime = false,
-    } = ctx.query;
+    } = ctx.validateAsync({
+      query: {
+        bucket: Joi.string().allow(null, ""),
+        type: Joi.string().allow(null, ""),
+        filename: Joi.string().allow(null, ""),
+        rename: Joi.boolean().allow(null, ""),
+        folder: Joi.string().allow(null, ""),
+        hastime: Joi.boolean().allow(null, ""),
+      },
+      status: 10001,
+    });
+
     // 获取配置
     const { ali } = this.config;
     const ossConfig = ali[aliossType];
@@ -101,7 +100,6 @@ export default class AliSTS extends Controller {
       "$resource",
       `${bucket}/${type === "file" && filename ? filename : filepath ? `${filepath}/*` : '*'}`
     );
-    console.log('policy==>', policy)
     policy = JSON.parse(policy);
     try {
       const token = await stsInstance.assumeRole(
@@ -172,7 +170,7 @@ export default class AliSTS extends Controller {
   _getResult(filepath, filename, token, ossConfig) {
     let { bucket, region } = ossConfig;
     const domain = this._getDomain(ossConfig);
-    const url = domain  + (!!filename ? join(filepath, filename) : "");
+    const url = domain + '/' + (!!filename ? join(filepath, filename) : "");
     return {
       url,
       domain,

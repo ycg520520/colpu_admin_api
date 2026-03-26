@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-25 18:45:57
+ * @LastEditTime: 2026-03-26 13:11:42
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -23,8 +23,8 @@ export default {
   proxy: null,
   session: {
     key: "koa:sess", // cookie的key。 (默认是 koa:sess)
-    // maxAge: 9e5, // session 过期时间，以毫秒ms为单位计算 。默认为15分钟
-    maxAge: 5e3, // session 过期时间，以毫秒ms为单位计算 。默认为15分钟
+    maxAge: 9e5, // session 过期时间，以毫秒ms为单位计算 。默认为15分钟
+    // maxAge: 5e3, // session 过期时间，以毫秒ms为单位计算 。默认为15分钟
     autoCommit: true, // 自动提交到响应头。(默认是 true)
     overwrite: true, // 是否允许重写 。(默认是 true)
     httpOnly: true, // 是否设置HttpOnly，如果在Cookie中设置了"HttpOnly"属性，那么通过程序(JS脚本、Applet等)将无法读取到Cookie信息，这样能有效的防止XSS攻击。  (默认 true)
@@ -121,8 +121,6 @@ export default {
     default: {
       ...aliOSS,
       arn: "acs:ram::1184036967255532:role/stsrole", // 自定义的权限策略名称
-      customFolder: "",
-      domain: "https://img.nadu8.com",
       policy: {
         Version: "1",
         Statement: [

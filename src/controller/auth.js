@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-17 15:22:39
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-25 20:37:53
+ * @LastEditTime: 2026-03-26 11:40:05
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import crypto from "crypto";
@@ -11,8 +11,8 @@ import { Controller } from "@colpu/core";
 import jwt from "jsonwebtoken";
 import cryptoUtil from "../utils/crypto.js";
 import WechatOAuth from '../utils/wechat_oauth.js';
-// const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
-const refreshTokenAddMaxAge = 10e3; // 2小时，单位毫秒
+const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
+// const refreshTokenAddMaxAge = 10e3; // 2小时，单位毫秒
 export default class AuthController extends Controller {
   /**·
    * @api {post} /token
