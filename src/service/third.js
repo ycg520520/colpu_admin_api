@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-24 15:11:09
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-24 22:35:53
+ * @LastEditTime: 2026-04-10 17:13:15
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -87,7 +87,7 @@ export default class ThirdAuthService extends Base {
     const DEFAULT_USER_PRFIX = this.config.default_user_prfix || '@AU@_';
     const username = `${DEFAULT_USER_PRFIX}${cryptoUtils.md5(openid)}` + Date.now();
     const nickname = nicknameMap[type || '0'] + '用户';
-    const avatar = "assets/gleaner.png";
+    const avatar = "static/logo.png";
     return users.create({
       username,
       nickname,
