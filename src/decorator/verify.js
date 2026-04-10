@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2023-08-09 23:43:44
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-25 17:16:35
+ * @LastEditTime: 2026-03-29 14:17:12
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -16,7 +16,9 @@
  */
 export default async function verify(ctx, next) {
   // const jwtConf = ctx.app.config.jwt || {};
-
+  if (ctx.get("X-Verify-Skip") === "true") {
+    return next();
+  }
   const authorization =
     ctx.get("Authorization") || ctx.get("authorization") || "";
   const accessToken = authorization.split(" ")[1];

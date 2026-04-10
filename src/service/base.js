@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2024-06-12 13:13:48
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-27 16:06:28
+ * @LastEditTime: 2026-03-29 15:22:54
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -68,9 +68,8 @@ export default class Base extends Service {
    * @returns {Object} { rows, total, page, pageSize, totalPages }
    */
   composePaginationData(data, page, pageSize) {
-    const { rows, count: total = 0 } = data || {};
+    const { rows, count: total = 0,  } = data || {};
     return {
-      ...data,
       rows,
       total,
       page: parseInt(page),

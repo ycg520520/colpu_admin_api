@@ -7,7 +7,7 @@
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 import Base from "../base.js";
-import { frags, sites, articles, cmsdb, articleTags, tags, classify } from "../../models/cms/index.js";
+import { frags, sites, articles, cmsDb, articleTags, tags, classify } from "../../models/cms/index.js";
 import { Op, QueryTypes } from "sequelize";
 export default class FragsService extends Base {
   feature(type) {
@@ -40,7 +40,7 @@ export default class FragsService extends Base {
       -- SELECT id FROM classify_tree WHERE code!=:category ORDER BY id; # 过滤当前分类
       SELECT id, path, name FROM classify_tree; # 包括当前分类
     `;
-    const [results] = await cmsdb.query(query, {
+    const [results] = await cmsDb.query(query, {
       replacements: { category },
       type: QueryTypes.SELECT,
       raw: true,
@@ -109,7 +109,7 @@ export default class FragsService extends Base {
     )
     SELECT name, path FROM classify_tree ORDER BY depth DESC;
   `;
-    const results = await cmsdb.query(query, {
+    const results = await cmsDb.query(query, {
       replacements: { id },
       type: QueryTypes.SELECT
     });

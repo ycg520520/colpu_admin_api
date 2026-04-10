@@ -289,3 +289,18 @@ export async function clearHtml($, select) {
   });
   return htmlStr;
 }
+
+export function singleton(className) {
+  let instance;
+  const proxy = new Proxy(className, {
+    construct(target, args) {
+      if (instance) {
+        return instance;
+      }
+      instance = Reflect.construct(target, args);
+      return instance;
+    }
+  });
+  proxy.prototype.constructor = proxy // 确保原型链正确;
+  return proxy;
+}

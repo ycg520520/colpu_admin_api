@@ -2,11 +2,11 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-26 13:11:42
+ * @LastEditTime: 2026-03-27 22:35:31
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan } from "../../.config.js";
+import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys } from "../../.config.js";
 export default {
   port: 8610,
   domain: "http://localhost:8610",
@@ -23,7 +23,7 @@ export default {
   proxy: null,
   session: {
     key: "koa:sess", // cookie的key。 (默认是 koa:sess)
-    maxAge: 9e5, // session 过期时间，以毫秒ms为单位计算 。默认为15分钟
+    maxAge: 72e5, // session 过期时间，以毫秒ms为单位计算 。默认9e5(为15分钟), 72e5两小时
     // maxAge: 5e3, // session 过期时间，以毫秒ms为单位计算 。默认为15分钟
     autoCommit: true, // 自动提交到响应头。(默认是 true)
     overwrite: true, // 是否允许重写 。(默认是 true)
@@ -145,5 +145,6 @@ export default {
     ...wechat,
     redirectUri: 'https://grumpy-items-poke.loca.lt/api/wechat/callback', // 回调地址
   },
+  aikeys,
   default_user_prfix: "@AU@_"
 };

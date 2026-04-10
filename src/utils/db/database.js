@@ -55,7 +55,7 @@ class DataBase {
     return sequelize;
   }
 
-  async initDatabase(dbkey, force) {
+  async initDatabase(dbkey, syncOption = {}) {
     const options = this._parseConfig(dbkey);
     if (await this.createDatabaseIfNotExists(options)) {
       let sequelize = cachedInstances[this.dbType][dbkey];
@@ -67,7 +67,7 @@ class DataBase {
       await sequelize.authenticate().then(() => {
         console.log("数据库：%s 已经连接成功~", database);
         // 同步数据
-        return this.syncModels(sequelize, host, force);
+        return this.syncModels(sequelize, host, syncOption);
       })
     }
   }
@@ -172,11 +172,14 @@ class DataBase {
       });
   }
   // 同步模型（创建表）
-  syncModels(sequelize, host = "127.0.0.1", force = true) {
+  syncModels(sequelize, host = "127.0.0.1", option = {}) {
+    const isDev = process.env.NODE_ENV === "development";
+    console.log("是否开发环境:", isDev, process.env.NODE_ENV, option);
     return sequelize
       .sync({
-        force, // 强制重建表
-        alter: process.env.NODE_ENV === "development" && host === "127.0.0.1", // 开发环境自动修改表结构
+        force: isDev, // 强制重建表
+        alter: isDev, // 开发环境自动修改表结构
+        ...option
       })
       .then((res) => {
         console.log(`在服务器:${host}, 所有模型同步成功~`,);

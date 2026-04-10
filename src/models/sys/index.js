@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-10-28 22:06:05
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-24 21:31:35
+ * @LastEditTime: 2026-03-27 11:11:15
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -11,20 +11,20 @@ import { dictDataModel, dictTypesModel } from "./dict.js";
 import { languagesModel, translationsModel } from "./languages.js";
 
 export const db = DbInstances.mysql;
-export const sysdb = db.use("colpusys"); // 导出sequelize实例
+export const sysDb = db.use("colpu_sys"); // 导出sequelize实例
 
 // 用户表
-export const users = (await import("./users.js")).default(sysdb);
+export const users = (await import("./users.js")).default(sysDb);
 
 // 客服端表
-export const clients = (await import("./clients.js")).default(sysdb);
+export const clients = (await import("./clients.js")).default(sysDb);
 
 // 语言表
-export const languages = languagesModel(sysdb);
-export const translations = translationsModel(sysdb);
+export const languages = languagesModel(sysDb);
+export const translations = translationsModel(sysDb);
 // 字典表
-export const dictData = dictDataModel(sysdb);
-export const dictTypes = dictTypesModel(sysdb);
+export const dictData = dictDataModel(sysDb);
+export const dictTypes = dictTypesModel(sysDb);
 dictTypes.hasMany(dictData, {
   foreignKey: 'type_code',
   sourceKey: 'type_code'
@@ -36,34 +36,34 @@ dictData.belongsTo(dictTypes, {
 });
 
 // 部门表
-export const departments = (await import("./departments.js")).default(sysdb);
-export const userDepartments = (await import("./user_departments.js")).default(sysdb);
+export const departments = (await import("./departments.js")).default(sysDb);
+export const userDepartments = (await import("./user_departments.js")).default(sysDb);
 // 岗位表
-export const post = (await import("./post.js")).default(sysdb);
-export const userPost = (await import("./user_post.js")).default(sysdb);
+export const post = (await import("./post.js")).default(sysDb);
+export const userPost = (await import("./user_post.js")).default(sysDb);
 
 // 菜单表
-export const menus = (await import("./menus.js")).default(sysdb);
+export const menus = (await import("./menus.js")).default(sysDb);
 // 角色表
-export const roles = (await import("./roles.js")).default(sysdb);
+export const roles = (await import("./roles.js")).default(sysDb);
 // 权限表
-export const permissions = (await import("./permissions.js")).default(sysdb);
+export const permissions = (await import("./permissions.js")).default(sysDb);
 // 用户权限关联表
-export const userPermission = (await import("./user_permission.js")).default(sysdb);
+export const userPermission = (await import("./user_permission.js")).default(sysDb);
 // 角色权限关联表
-export const rolePermission = (await import("./role_permission.js")).default(sysdb);
+export const rolePermission = (await import("./role_permission.js")).default(sysDb);
 // 角色用户关联表
-export const roleUsers = (await import("./role_users.js")).default(sysdb, roles, users);
+export const roleUsers = (await import("./role_users.js")).default(sysDb, roles, users);
 // 日志记录表
-export const logger = (await import("./logger.js")).default(sysdb);
+export const logger = (await import("./logger.js")).default(sysDb);
 
 // 角色菜单关联表
-// export const roleMenus = (await import("./role_menus.js")).default(sysdb, roles, menus);
+// export const roleMenus = (await import("./role_menus.js")).default(sysDb, roles, menus);
 // 数据权限范围表
-// export const rolePermissionScope = (await import("./role_permission_scope.js")).default(sysdb);
+// export const rolePermissionScope = (await import("./role_permission_scope.js")).default(sysDb);
 
-export const thirdAuth = (await import("./third_auth.js")).default(sysdb);
-export const userThirdAuth = (await import("./user_third_auth.js")).default(sysdb);
+export const thirdAuth = (await import("./third_auth.js")).default(sysDb);
+export const userThirdAuth = (await import("./user_third_auth.js")).default(sysDb);
 
 
 // 用户角色权限关联关系
