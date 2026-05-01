@@ -28,7 +28,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 分页爬虫配置列表
    */
   async list(ctx) {
-    const query = ctx.validateAsync(ctx.utils.schemaPagination());
+    const query = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.cms.spider.list(query);
     return ctx.respond(data);
   }
@@ -44,7 +44,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 爬虫配置详情
    */
   async findOne(ctx) {
-    const { id } = ctx.validateAsync({
+    const { id } = ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -66,7 +66,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 创建的爬虫配置信息
    */
   async create(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         title: Joi.string().required(),
       },
@@ -87,7 +87,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 更新后的爬虫配置信息
    */
   async update(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -109,7 +109,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         id: Joi.number().required()
       },
@@ -129,7 +129,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 爬取结果
    */
   async spiderSchedule(ctx) {
-    const { id } = ctx.validateAsync({
+    const { id } = ctx.validate({
       query: {
         id: Joi.string().required(), // 操作事件
       },
@@ -176,7 +176,7 @@ export default class SpiderController extends Controller {
    * @apiSuccess {Object} data 爬取结果
    */
   async spider(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {},
     });
     const data = await this._spider(body);

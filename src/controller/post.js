@@ -25,7 +25,7 @@ export default class PostController extends Controller {
    * @apiSuccess {Object} data 分页岗位列表
    */
   async list(ctx) {
-    const params = ctx.validateAsync(ctx.utils.schemaPagination());
+    const params = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.post.getPostList(params);
     return ctx.respond(data);
   }
@@ -41,7 +41,7 @@ export default class PostController extends Controller {
    * @apiSuccess {Object} data 岗位详情
    */
   async findOne(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -63,7 +63,7 @@ export default class PostController extends Controller {
    */
   async create(ctx) {
     const body = ctx.request.body;
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         name: Joi.string().required(),
       },
@@ -85,7 +85,7 @@ export default class PostController extends Controller {
    * @apiSuccess {Object} data 更新后的岗位信息
    */
   async update(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -107,7 +107,7 @@ export default class PostController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.number().required()
       },

@@ -25,7 +25,7 @@ export default class ImageSuperController extends Controller {
     });
   }
   async generate(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         imageUrl: Joi.string().required(), // 图片
         scale: Joi.number().default(2), // 缩放比例
@@ -54,7 +54,7 @@ export default class ImageSuperController extends Controller {
     ctx.respond(createRes);
   }
   async make(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         url: Joi.string().required(), // 图片
         upscaleFactor: Joi.number().default(2), // 缩放比例

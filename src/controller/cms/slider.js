@@ -25,7 +25,7 @@ export default class SliderController extends Controller {
    * @apiSuccess {Object} data 分页轮播图列表
    */
   async list(ctx) {
-    const query = ctx.validateAsync(ctx.utils.schemaPagination());
+    const query = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.cms.slider.list(query);
     return ctx.respond(data);
   }
@@ -41,7 +41,7 @@ export default class SliderController extends Controller {
    * @apiSuccess {Object} data 轮播图详情
    */
   async findOne(ctx) {
-    const { id } = ctx.validateAsync({
+    const { id } = ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -62,7 +62,7 @@ export default class SliderController extends Controller {
    * @apiSuccess {Object} data 创建的轮播图信息
    */
   async create(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         title: Joi.string().required(),
         src: Joi.string().required(),
@@ -84,7 +84,7 @@ export default class SliderController extends Controller {
    * @apiSuccess {Object} data 更新后的轮播图信息
    */
   async update(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -106,7 +106,7 @@ export default class SliderController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         id: Joi.number().required()
       },

@@ -2,13 +2,14 @@
  * @Author: colpu
  * @Date: 2025-10-28 22:06:05
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-27 11:11:15
+ * @LastEditTime: 2026-04-23 14:04:33
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import DbInstances from "../../utils/db/index.js";
 import { dictDataModel, dictTypesModel } from "./dict.js";
 import { languagesModel, translationsModel } from "./languages.js";
+import { categoryTypeModel, categoryModel } from "./category.js";
 
 export const db = DbInstances.mysql;
 export const sysDb = db.use("colpu_sys"); // 导出sequelize实例
@@ -64,6 +65,9 @@ export const logger = (await import("./logger.js")).default(sysDb);
 
 export const thirdAuth = (await import("./third_auth.js")).default(sysDb);
 export const userThirdAuth = (await import("./user_third_auth.js")).default(sysDb);
+// 分类表
+export const categoryType = categoryTypeModel(sysDb);
+export const category = categoryModel(sysDb);
 
 
 // 用户角色权限关联关系

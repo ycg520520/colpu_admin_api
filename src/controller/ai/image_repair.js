@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-26 14:39:44
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-10 10:00:47
+ * @LastEditTime: 2026-04-24 21:59:42
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -25,7 +25,7 @@ export default class ImageRepairController extends Controller {
     });
   }
   async repair(ctx) {
-    const { images, prompt, model = 'wan2.6-image' } = ctx.validateAsync({
+    const { images, prompt, model = 'wan2.6-image' } = ctx.validate({
       body: {
         images: Joi.array().items(Joi.string()).required(), // 图片
         prompt: Joi.string(), // 提示词

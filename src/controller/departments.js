@@ -38,7 +38,7 @@ export default class DepartmentsController extends Controller {
    * @apiSuccess {Array} data 部门列表
    */
   async list(ctx) {
-    // ctx.validateAsync({
+    // ctx.validate({
     //   query: {
     //     page: Joi.number().default(1),
     //     pageSize: Joi.number().default(20),
@@ -59,7 +59,7 @@ export default class DepartmentsController extends Controller {
    * @apiSuccess {Object} data 部门详情
    */
   async findOne(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -82,7 +82,7 @@ export default class DepartmentsController extends Controller {
    */
   async create(ctx) {
     const body = ctx.request.body;
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         name: Joi.string().required(),
       },
@@ -104,7 +104,7 @@ export default class DepartmentsController extends Controller {
    * @apiSuccess {Object} data 更新后的部门信息
    */
   async update(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -126,7 +126,7 @@ export default class DepartmentsController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.number().required()
       },

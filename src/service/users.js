@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2024-06-20 14:49:51
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-24 16:26:46
+ * @LastEditTime: 2026-04-30 09:56:36
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -46,7 +46,8 @@ export default class UserService extends Base {
           "created_at",
           "updated_at",
         ],
-      where
+      where,
+      raw: true,
     });
   }
 

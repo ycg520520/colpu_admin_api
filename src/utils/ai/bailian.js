@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:59:47
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-10 11:41:11
+ * @LastEditTime: 2026-04-20 17:38:36
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -34,7 +34,7 @@ export default class Bailian {
       const { model, ...resetBody } = body;
       return {
         output,
-        action: model,
+        model,
         task_status: output.task_status,
         task_id: output.task_id,
         task_type: this.task_type,

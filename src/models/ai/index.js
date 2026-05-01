@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-10-28 22:06:05
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-30 12:10:07
+ * @LastEditTime: 2026-04-30 15:24:59
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -11,4 +11,26 @@ export const db = DbInstances.mysql;
 export const aiDb = db.use("colpu_ai");
 
 // 记录修复记录
-export const recods = (await import("./recods.js")).default(aiDb);
+export const records = (await import("./records.js")).default(aiDb);
+export const template = (await import("./template.js")).default(aiDb);
+export const classify = (await import("./classify.js")).default(aiDb);
+export const classifyTemplate = (await import("./classify_template.js")).default(aiDb);
+export const classifyExtend = (await import("./classify_extend.js")).default(aiDb);
+// 分类模板关联关系
+classify.belongsToMany(template, {
+  through: classifyTemplate,
+  foreignKey: 'classify_id',
+  otherKey: 'template_id',
+});
+template.belongsToMany(classify, {
+  through: classifyTemplate,
+  foreignKey: 'template_id',
+  otherKey: 'classify_id',
+});
+
+// 建立关联关系
+classifyExtend.belongsTo(classify, {
+  foreignKey: 'classify_id',
+  targetKey: 'id',
+  as: 'c'
+});

@@ -25,7 +25,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Object} data 分页权限列表
    */
   async list(ctx) {
-    const params = ctx.validateAsync(ctx.utils.schemaPagination());
+    const params = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.permission.list(params);
     return ctx.respond(data);
   }
@@ -41,7 +41,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Object} data 权限详情
    */
   async findOne(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -77,7 +77,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Object} data 分配结果
    */
   async give(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         role_id: Joi.number().required(),
         perm_ids: Joi.array().items(Joi.number()).required()
@@ -101,7 +101,7 @@ export default class PermissionController extends Controller {
    */
   async create(ctx) {
     const body = ctx.request.body;
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         name: Joi.string().required(),
       },
@@ -123,7 +123,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Object} data 更新后的权限信息
    */
   async update(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -145,7 +145,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.number().required()
       },
@@ -165,7 +165,7 @@ export default class PermissionController extends Controller {
    * @apiSuccess {Array} data 用户列表
    */
   async permUsers(ctx) {
-    const { perm_id } = ctx.validateAsync({
+    const { perm_id } = ctx.validate({
       query: {
         perm_id: Joi.number().required(),
       },

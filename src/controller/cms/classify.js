@@ -39,7 +39,7 @@ export default class ClassifyController extends Controller {
    * @apiSuccess {Array} data 分类树
    */
   async tree(ctx) {
-    const { exclude } = ctx.validateAsync({
+    const { exclude } = ctx.validate({
       query: {
         exclude: Joi.boolean(),
       },
@@ -48,7 +48,7 @@ export default class ClassifyController extends Controller {
     return ctx.respond(data);
   }
   async list(ctx) {
-    const query = ctx.validateAsync(ctx.utils.schemaPagination());
+    const query = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.cms.classify.all(query);
     return ctx.respond(data);
   }
@@ -64,7 +64,7 @@ export default class ClassifyController extends Controller {
    * @apiSuccess {Object} data 分类详情
    */
   async findOne(ctx) {
-    const { id } = ctx.validateAsync({
+    const { id } = ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -85,7 +85,7 @@ export default class ClassifyController extends Controller {
    * @apiSuccess {Object} data 创建的分类信息
    */
   async create(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         name: Joi.string().required(),
       },
@@ -107,7 +107,7 @@ export default class ClassifyController extends Controller {
    * @apiSuccess {Object} data 更新后的分类信息
    */
   async update(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -131,7 +131,7 @@ export default class ClassifyController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         id: Joi.number().required()
       },

@@ -50,7 +50,7 @@ export default class AliScan extends Controller {
   }
   async text(ctx) {
     // 参数验证
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         content: Joi.string().required(),
       },
@@ -98,7 +98,7 @@ export default class AliScan extends Controller {
   }
 
   async image(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         url: Joi.string().required(),
       },

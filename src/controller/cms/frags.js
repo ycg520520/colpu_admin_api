@@ -26,7 +26,7 @@ export default class FragsController extends Controller {
    * @apiSuccess {Object} data 分页碎片列表
    */
   async list(ctx) {
-    const query = ctx.validateAsync(ctx.utils.schemaPagination());
+    const query = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.cms.frags.list(query);
     return ctx.respond(data);
   }
@@ -42,7 +42,7 @@ export default class FragsController extends Controller {
    * @apiSuccess {Object} data 碎片详情
    */
   async findOne(ctx) {
-    const { id } = ctx.validateAsync({
+    const { id } = ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -64,7 +64,7 @@ export default class FragsController extends Controller {
    * @apiSuccess {Object} data 创建的碎片信息
    */
   async create(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         title: Joi.string().required(),
         type: Joi.number().required(),
@@ -87,7 +87,7 @@ export default class FragsController extends Controller {
    * @apiSuccess {Object} data 更新后的碎片信息
    */
   async update(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -108,7 +108,7 @@ export default class FragsController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         id: Joi.number().required()
       },

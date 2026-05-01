@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:15:31
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-09 11:57:42
+ * @LastEditTime: 2026-04-30 16:44:41
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -41,11 +41,11 @@ export default class AliViapi {
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
    * - task_type: 任务类型，固定为viapi
-   * - action: 使用的操作名称，固定为generateSuperResolutionImage
+   * - model: 使用的操作名称，固定为generateSuperResolutionImage
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
    * @example
-   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' }); 
+   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' });
    * viapi.generateSuperResolutionImage({ imageUrl: 'https://example.com/image.png', scale: 4, outputFormat: 'jpg', outputQuality: 90 })
    *   .then(result => console.log(result))
    *   .catch(error => console.error(error));
@@ -63,7 +63,7 @@ export default class AliViapi {
         ...res.body,
         task_id: res.body.requestId,
         task_type: this.task_type,
-        action: "generateSuperResolutionImage"
+        model: "generateSuperResolutionImage"
       }
     });
   }
@@ -82,11 +82,11 @@ export default class AliViapi {
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
    * - task_type: 任务类型，固定为viapi
-   * - action: 使用的操作名称，固定为makeSuperResolutionImage
+   * - model: 使用的操作名称，固定为makeSuperResolutionImage
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
    * @example
-   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' }); 
+   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' });
    * viapi.makeSuperResolutionImage({ url: 'https://example.com/image.png', mode: 'advanced', upscaleFactor: 4, outputFormat: 'jpg', outputQuality: 90 })
    *   .then(result => console.log(result))
    *   .catch(error => console.error(error));
@@ -105,11 +105,10 @@ export default class AliViapi {
       return {
         images,
         output: body.data,
-        request_id: body.requestId,
         task_id: body.requestId,
         task_status: 'SUCCEEDED',
         task_type: this.task_type,
-        action: "makeSuperResolutionImage"
+        model: "makeSuperResolutionImage"
       }
     });
   }
@@ -125,11 +124,11 @@ export default class AliViapi {
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
    * - task_type: 任务类型，固定为viapi
-   * - action: 使用的操作名称，固定为enhanceImageColor
+   * - model: 使用的操作名称，固定为enhanceImageColor
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
    * @example
-   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' }); 
+   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' });
    * viapi.enhanceImageColor({ imageUrl: 'https://example.com/image.png', mode: 'LogC', outputFormat: 'png' })
    *   .then(result => console.log(result))
    *   .catch(error => console.error(error));
@@ -150,11 +149,10 @@ export default class AliViapi {
       return {
         images,
         output: body.data,
-        request_id: body.requestId,
         task_id: body.requestId,
         task_status: 'SUCCEEDED',
         task_type: this.task_type,
-        action: "enhanceImageColor"
+        model: "enhanceImageColor"
       }
     });
   }
@@ -167,11 +165,11 @@ export default class AliViapi {
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
    * - task_type: 任务类型，固定为viapi
-   * - action: 使用的操作名称，固定为colorizeImage
+   * - model: 使用的操作名称，固定为colorizeImage
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
    * @example
-   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' }); 
+   * const viapi = new AliViapi({ accessKeyId: 'your-access-key-id', accessKeySecret: 'your-access-key-secret' });
    * viapi.colorizeImage({ imageUrl: 'https://example.com/image.png' })
    *   .then(result => console.log(result))
    *   .catch(error => console.error(error));
@@ -189,11 +187,10 @@ export default class AliViapi {
       return {
         images,
         output: body.data,
-        request_id: body.requestId,
         task_id: body.requestId,
         task_status: 'SUCCEEDED',
         task_type: this.task_type,
-        action: "colorizeImage"
+        model: "colorizeImage"
       }
     });
   }

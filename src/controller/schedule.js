@@ -19,7 +19,7 @@ export default class ScheduleController extends Controller {
    * 使用方法: domain:port/schedule?event=start|stop&url=''&rule='* * * * * *'
    */
   async launch(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         event: Joi.string().required(), // 操作事件
         url: Joi.string().required(), // 要启动的请求地址

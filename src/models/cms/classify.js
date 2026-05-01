@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-12-11 09:08:11
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-02 00:18:31
+ * @LastEditTime: 2026-04-23 13:09:12
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -18,10 +18,6 @@ export default (sequelize) => {
     parent_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      // references: {
-      //   model: "Classify",
-      //   key: 'id'
-      // },
       comment: '父级ID'
     },
     name: {
@@ -37,17 +33,17 @@ export default (sequelize) => {
     code: {
       type: DataTypes.STRING(100),
       allowNull: true,
-      comment: '栏目标识'
+      comment: '分类标识'
     },
     path: {
       type: DataTypes.STRING(100),
       allowNull: true,
-      comment: '栏目路径'
+      comment: '分类路径'
     },
     type: {
       type: DataTypes.TINYINT(1),
       defaultValue: 0,
-      comment: '分类类型默认值为0，即公用分类，1-文章分类，2-产品分类，3-项目分类，4-案例分类，5-新闻分类',
+      comment: '分类类型：0-目录，1-栏目，2-单页',
     },
     title: {
       type: DataTypes.STRING(255),
@@ -74,10 +70,9 @@ export default (sequelize) => {
       allowNull: true,
       comment: '内容模板'
     },
-    template_list: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      comment: '列表模板'
+    remark: {
+      type: DataTypes.STRING(500),  // 数据类型为字符串，长度500
+      comment: '描述'              // 字段注释
     },
     status: {
       type: DataTypes.TINYINT(1),

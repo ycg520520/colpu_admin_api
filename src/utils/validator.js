@@ -7,7 +7,7 @@ import Joi from "joi";
 
 /**
  * 分页查询通用 schema
- * 用于 ctx.validateAsync({ query: { ...paginationSchema, ...extras } })
+ * 用于 ctx.validate({ query: { ...paginationSchema, ...extras } })
  */
 export const paginationSchema = {
   page: Joi.number().integer().min(1).default(1),
@@ -17,10 +17,10 @@ export const paginationSchema = {
 /**
  * 生成带分页的 query 校验 schema，便于在 controller 中复用
  * @param {Object} [extras={}] 额外字段，如 { dept_id: Joi.number(), keyword: Joi.string() }
- * @returns {Object} 可直接传给 ctx.validateAsync 的 schema
+ * @returns {Object} 可直接传给 ctx.validate 的 schema
  * @example
- * const params = ctx.validateAsync(ctx.utils.schemaPagination());
- * const params = ctx.validateAsync(ctx.utils.schemaPagination({ dept_id: Joi.number() }));
+ * const params = ctx.validate(ctx.utils.schemaPagination());
+ * const params = ctx.validate(ctx.utils.schemaPagination({ dept_id: Joi.number() }));
  */
 export function schemaPagination(extras = {}) {
   return {

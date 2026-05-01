@@ -44,7 +44,7 @@ export default class WeChatController extends Controller {
    */
   async getAccessToken(ctx) {
     // 从查询参数中获取 code
-    const { code } = ctx.validateAsync({
+    const { code } = ctx.validate({
       query: {
         code: Joi.string(),
       },

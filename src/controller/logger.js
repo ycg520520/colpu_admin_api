@@ -24,7 +24,7 @@ export default class LogsController extends Controller {
    * @apiSuccess {Object} data 分页日志列表
    */
   async list(ctx) {
-    const params = ctx.validateAsync(ctx.utils.schemaPagination());
+    const params = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.logs.list(params);
     return ctx.respond(data);
   }

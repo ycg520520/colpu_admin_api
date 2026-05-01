@@ -155,7 +155,7 @@ export default class UploadController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    const { filename } = ctx.validateAsync({
+    const { filename } = ctx.validate({
       query: {
         filename: Joi.string().required(),
       },

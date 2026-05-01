@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2022-11-25 10:53:20
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-25 20:12:40
+ * @LastEditTime: 2026-04-23 20:25:25
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -22,7 +22,7 @@ class Validation {
   }
 
   /**
-   * @function validate 中间件验证
+   * @function validateAsync 中间件验证
    * @param {Object} schema
    * {
    *   body: {},
@@ -31,7 +31,7 @@ class Validation {
    *   status: // 自定义错误状态码
    * }
    */
-  validate(schema = {}) {
+  validateAsync(schema = {}) {
     const options = _.defaultsDeep(schema, {
       allowUnknown: true,
     });
@@ -42,7 +42,7 @@ class Validation {
   }
 
   /**
-   * @function validateAsync 中间件验证
+   * @function validate 中间件验证
    * @param {Object} schema
    * {
    *   body: {},
@@ -51,7 +51,7 @@ class Validation {
    *   status: // 自定义错误状态码
    * }
    */
-  validateAsync(ctx) {
+  validate(ctx) {
     return (schema = {}) => {
       const options = _.defaultsDeep(schema, {
         allowUnknown: true,
@@ -60,18 +60,6 @@ class Validation {
       return this._validate(ctx, schema, options);
     };
   }
-
-  /**
-   * @function validateAsync 中间件验证
-   * @param {Object} schema
-   * {
-   *   body: {},
-   *   params: {},
-   *   query: {
-      return this._validate(ctx, schema, options);
-    };
-  }
-
   /**
    * @function _validate 验证
    * @param {Context} ctx
@@ -122,7 +110,7 @@ class Validation {
    }))
  *
  * 2、在controller中使用
- * ctx.validateAsync({
+ * ctx.validate({
       body: {
         name: Joi.string().required(),
         password: Joi.string().required(),
@@ -131,12 +119,12 @@ class Validation {
     });
  */
 const validationInstance = new Validation();
-const validate = validationInstance.validate.bind(validationInstance);
+const validateAsync = validationInstance.validateAsync.bind(validationInstance);
 export default (app) => {
-  app.validate = validate
+  app.validateAsync = validateAsync
   app.use((ctx, next) => {
-    if (!ctx.validateAsync) {
-      ctx.validateAsync = validationInstance.validateAsync(ctx);
+    if (!ctx.validate) {
+      ctx.validate = validationInstance.validate(ctx);
     }
     return next();
   });

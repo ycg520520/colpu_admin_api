@@ -25,7 +25,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 分页角色列表
    */
   async roleList(ctx) {
-    const param = ctx.validateAsync(ctx.utils.schemaPagination());
+    const param = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.roles.roleList(param);
     return ctx.respond(data);
   }
@@ -55,7 +55,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 角色详情
    */
   async getRole(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -77,7 +77,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 创建的角色信息
    */
   async createRole(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         name: Joi.string().required(),
         code: Joi.string().required(),
@@ -100,7 +100,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 更新后的角色信息
    */
   async updateRole(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -121,7 +121,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteRole(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.number().required()
       },
@@ -143,7 +143,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 用户列表
    */
   async getRoleUser(ctx) {
-    const params = ctx.validateAsync(ctx.utils.schemaPagination({ role_id: Joi.number().required() }));
+    const params = ctx.validate(ctx.utils.schemaPagination({ role_id: Joi.number().required() }));
     const data = await this.service.roles.getRoleUser(params);
     ctx.respond(data, null, '创建成功');
   };
@@ -160,7 +160,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 操作结果
    */
   async createRoleUser(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         role_id: Joi.number().required(),
         user_ids: Joi.array().items(Joi.string()).required()
@@ -182,7 +182,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteRoleUser(ctx) {
-    const params = ctx.validateAsync({
+    const params = ctx.validate({
       query: {
         role_id: Joi.number().required(),
         user_ids: Joi.alternatives().try(
@@ -207,7 +207,7 @@ export default class RoleController extends Controller {
    * @apiSuccess {Object} data 分配结果
    */
   async rolePermission(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         role_id: Joi.number().required(),
         perm_ids: Joi.array().items(Joi.number()).required()

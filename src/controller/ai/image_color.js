@@ -25,7 +25,7 @@ export default class ImageColorController extends Controller {
     });
   }
   async color(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         imageUrl: Joi.string().required(), // 图片
       },
@@ -47,7 +47,7 @@ export default class ImageColorController extends Controller {
   }
 
   async colorize(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         imageUrl: Joi.string().required(), // 图片
       },

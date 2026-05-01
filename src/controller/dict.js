@@ -27,7 +27,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 分页字典类型列表
    */
   async getDictTypes(ctx) {
-    const params = ctx.validateAsync(ctx.utils.schemaPagination());
+    const params = ctx.validate(ctx.utils.schemaPagination());
     const data = await this.service.dict.getDictTypes(params);
     ctx.respond(data);
   };
@@ -44,7 +44,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 创建的字典类型信息
    */
   async createDictType(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         name: Joi.string().required(),
         type_code: Joi.string().required(),
@@ -67,7 +67,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 更新后的字典类型信息
    */
   async updateDictType(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -89,7 +89,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteDictType(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.number().required()
       },
@@ -110,7 +110,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Array} data 字典数据列表
    */
   async getDictData(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -147,7 +147,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 创建的字典数据信息
    */
   async createDictData(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         label: Joi.string().required(),
         value: Joi.string().required(),
@@ -172,7 +172,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 更新后的字典数据信息
    */
   async updateDictData(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -194,7 +194,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteDictData(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.number().required()
       },
@@ -214,7 +214,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Boolean} data 是否存在
    */
   async checkDictType(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         type_code: Joi.string().required(), // 字典类型
       },
@@ -237,7 +237,7 @@ export default class DictController extends Controller {
    * @apiSuccess {Boolean} data 是否存在
    */
   async checkDictData(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         type_code: Joi.string().required(), // 字典类型
         value: Joi.string(), // 字典值

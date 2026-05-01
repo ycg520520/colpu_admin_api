@@ -2,11 +2,11 @@
  * @Author: colpu
  * @Date: 2025-12-15 16:22:53
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-09 10:43:30
+ * @LastEditTime: 2026-04-23 14:01:35
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { db, users, menus, dictTypes, dictData, roles, departments, post, permissions, clients } from '../src/models/sys/index.js';
+import { db, users, menus, dictTypes, dictData, roles, departments, post, permissions, clients, category, categoryType } from '../src/models/sys/index.js';
 export default async ({ isSync, force }) => {
   console.log('🚀 Starting MySQL data initialization...');
   try {
@@ -89,6 +89,13 @@ async function initData(isSync) {
 
   for (const item of (await import('./data/sys/clients.js')).default) {
     await clients.create(item);
+  }
+
+  for (const item of (await import('./data/sys/category.js')).default) {
+    await category.create(item);
+  }
+  for (const item of (await import('./data/sys/category_type.js')).default) {
+    await categoryType.create(item);
   }
 
   // 创建客户端

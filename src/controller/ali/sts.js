@@ -61,7 +61,7 @@ export default class AliSTS extends Controller {
       rename = false,
       folder = "",
       hastime = false,
-    } = ctx.validateAsync({
+    } = ctx.validate({
       query: {
         bucket: Joi.string().allow(null, ""),
         type: Joi.string().allow(null, ""),
@@ -199,7 +199,7 @@ export default class AliSTS extends Controller {
 
   async signature(ctx) {
     // 参数验证
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         bucket: Joi.string().allow(undefined, null, ""),
       },

@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-10-11 11:13:07
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2025-12-07 21:43:38
+ * @LastEditTime: 2026-04-30 09:58:15
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -24,13 +24,17 @@ export default class UserController extends Controller {
    */
   async getUserInfo(ctx) {
     const { uid } = ctx.state.user;
-    const { dataValues } = await this.service.users.findUser({
+    const userInfo = await this.service.users.findUser({
       uid,
     });
-    const { roles, permissions } = await this.service.users.findUserRoleAndPermission(dataValues.id)
-    dataValues.roles = roles;
-    dataValues.permissions = permissions;
-    ctx.respond(dataValues);
+    if (!userInfo) {
+      ctx.throw(401, '用户不存在');
+      return;
+    }
+    const { roles, permissions } = await this.service.users.findUserRoleAndPermission(userInfo.id)
+    userInfo.roles = roles;
+    userInfo.permissions = permissions;
+    ctx.respond(userInfo);
   }
 
   /**
@@ -44,7 +48,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Array} data 用户列表 [{id, value}, {nickname, label}]
    */
   async searchUserList(ctx) {
-    const params = ctx.validateAsync({
+    const params = ctx.validate({
       query: {
         keyword: Joi.string().required(),
       },
@@ -66,7 +70,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 分页用户列表
    */
   async getUserList(ctx) {
-    const params = ctx.validateAsync(ctx.utils.schemaPagination({ dept_id: Joi.number() }));
+    const params = ctx.validate(ctx.utils.schemaPagination({ dept_id: Joi.number() }));
     const data = await this.service.users.userList(params);
     ctx.respond(data);
   }
@@ -83,7 +87,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 创建的用户信息
    */
   async createUser(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         username: Joi.string().required(),
         password: Joi.string().required(),
@@ -105,7 +109,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteUser(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -129,7 +133,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 更新后的用户信息
    */
   async updateUser(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         id: Joi.string().required(),
       },
@@ -167,7 +171,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 更新结果
    */
   async updateUserRole(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -190,7 +194,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteUserRole(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -228,7 +232,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 更新结果
    */
   async updateUserPermission(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -251,7 +255,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteUserPermission(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -289,7 +293,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 更新结果
    */
   async updateUserMenu(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -312,7 +316,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteUserMenu(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -350,7 +354,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 更新结果
    */
   async updateUserMenuTree(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -373,7 +377,7 @@ export default class UserController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async deleteUserMenuTree(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       params: {
         uid: Joi.string().required(),
       },
@@ -399,7 +403,7 @@ export default class UserController extends Controller {
    *  { "status": 0, "data": false, "message": "不存在用户" }
    */
   async checkUser(ctx) {
-    ctx.validateAsync({
+    ctx.validate({
       query: {
         username: Joi.string(),
       },

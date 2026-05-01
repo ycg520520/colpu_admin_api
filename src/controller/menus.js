@@ -68,7 +68,7 @@ export default class MenusController extends Controller {
    * @apiSuccess {Object} data 菜单详情
    */
   async findOne(ctx) {
-    const { id } = ctx.validateAsync({
+    const { id } = ctx.validate({
       query: {
         id: Joi.string().required(),
       },
@@ -100,7 +100,7 @@ export default class MenusController extends Controller {
         name: Joi.string().required(),
       })
     }
-    ctx.validateAsync({
+    ctx.validate({
       body: validate,
     });
 
@@ -120,7 +120,7 @@ export default class MenusController extends Controller {
    * @apiSuccess {Object} data 更新后的菜单信息
    */
   async update(ctx) {
-    const body = ctx.validateAsync({
+    const body = ctx.validate({
       body: {
         id: Joi.number().required()
       },
@@ -141,7 +141,7 @@ export default class MenusController extends Controller {
    * @apiSuccess {Object} data 删除结果
    */
   async delete(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         id: Joi.number().required()
       },

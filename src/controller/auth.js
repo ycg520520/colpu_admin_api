@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-09-17 15:22:39
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-27 22:00:31
+ * @LastEditTime: 2026-04-30 10:12:34
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import crypto from "crypto";
@@ -45,7 +45,7 @@ export default class AuthController extends Controller {
 
   async token(ctx) {
     const validateType = this._getValidateType(ctx);
-    const { grant_type } = ctx.validateAsync({
+    const { grant_type } = ctx.validate({
       [validateType]: {
         grant_type: Joi.string().required(), // 授权类型
       },
@@ -108,7 +108,7 @@ export default class AuthController extends Controller {
    * }
    */
   async authorize(ctx) {
-    const { grant_type, client_id, redirect_uri, scope, state } = ctx.validateAsync({
+    const { grant_type, client_id, redirect_uri, scope, state } = ctx.validate({
       query: {
         grant_type: Joi.string().required(),
         client_id: Joi.string().required(),
@@ -225,7 +225,7 @@ export default class AuthController extends Controller {
   }
 
   async _passwordToken(ctx, client) {
-    ctx.validateAsync({
+    ctx.validate({
       body: {
         username: Joi.string().required(), // 用户名
         password: Joi.string().required(), // 密码
@@ -248,7 +248,7 @@ export default class AuthController extends Controller {
   }
 
   async _codeToken(ctx, client) {
-    const { code } = ctx.validateAsync({
+    const { code } = ctx.validate({
       body: {
         code: Joi.string().required(), // 授权码
       },
@@ -267,7 +267,7 @@ export default class AuthController extends Controller {
   }
 
   async _credentialsToken(ctx, client) {
-    const { secret, scope } = ctx.validateAsync({
+    const { secret, scope } = ctx.validate({
       body: {
         secret: Joi.string().required(), // 客户端密钥
         scope: Joi.string().optional().allow("", null),
@@ -287,7 +287,7 @@ export default class AuthController extends Controller {
    */
   async _appletToken(ctx, client) {
     const validateType = this._getValidateType(ctx);
-    const { code, scope } = ctx.validateAsync({
+    const { code, scope } = ctx.validate({
       [validateType]: {
         code: Joi.string().required(),
         scope: Joi.string().optional().allow("", null),
@@ -321,7 +321,7 @@ export default class AuthController extends Controller {
   async _refreshToken(ctx) {
     // ctx.throw(500, "服务器错误");
     const validateType = this._getValidateType(ctx);
-    const { refresh_token, scope } = ctx.validateAsync({
+    const { refresh_token, scope } = ctx.validate({
       [validateType]: {
         refresh_token: Joi.string().required(), // 刷新令牌;
       }
@@ -419,7 +419,7 @@ export default class AuthController extends Controller {
   async _getVerifyClient(ctx) {
     let client = this.config.jwt;
     const validateType = this._getValidateType(ctx);
-    const { scope } = ctx.validateAsync({
+    const { scope } = ctx.validate({
       [validateType]: {
         scope: Joi.string().optional().allow("", null),
       },

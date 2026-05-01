@@ -22,7 +22,7 @@ export default class WebController extends Controller {
     return ctx.respond(data);
   }
   async articleList(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         page: Joi.number().default(1),
         pageSize: Joi.number().default(20),
@@ -38,7 +38,7 @@ export default class WebController extends Controller {
     return ctx.respond(data);
   }
   async articleDetail(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         id: Joi.number().required(),
       },
@@ -48,7 +48,7 @@ export default class WebController extends Controller {
   }
 
   async articleListByType(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         size: Joi.number().default(5),
         type: Joi.number().required().valid(1, 2, 3, 4).description('1头条 2推荐 3轮播 4热门').default(1),
@@ -72,7 +72,7 @@ export default class WebController extends Controller {
   }
 
   async tagArticleList(ctx) {
-    const query = ctx.validateAsync({
+    const query = ctx.validate({
       query: {
         page: Joi.number().default(1),
         pageSize: Joi.number().default(20),

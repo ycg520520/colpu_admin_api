@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-27 08:44:18
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-09 10:31:17
+ * @LastEditTime: 2026-04-30 16:45:22
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -54,34 +54,34 @@ export default (sequelize) => {
       defaultValue: 'PENDING',
       comment: "状态，PENDING：任务排队中，RUNNING：任务处理中，SUCCEEDED：任务执行成功，FAILED：任务执行失败，CANCELED：任务已取消，UNKNOWN：任务不存在或状态未知",
     },
-    input: {
-      type: DataTypes.JSON,
-      allowNull: false,
-      defaultValue: {},
-      comment: "输入参数",
-    },
-    output: {
-      type: DataTypes.JSON,
-      allowNull: false,
-      defaultValue: {},
-      comment: "完成输出结果",
-    },
-    parameters: {
-      type: DataTypes.JSON,
-      allowNull: false,
-      defaultValue: {},
-      comment: "参数",
-    },
+    // input: {
+    //   type: DataTypes.JSON,
+    //   allowNull: false,
+    //   defaultValue: {},
+    //   comment: "输入参数",
+    // },
+    // output: {
+    //   type: DataTypes.JSON,
+    //   allowNull: false,
+    //   defaultValue: {},
+    //   comment: "完成输出结果",
+    // },
+    // parameters: {
+    //   type: DataTypes.JSON,
+    //   allowNull: false,
+    //   defaultValue: {},
+    //   comment: "参数",
+    // },
+    // request_id: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    //   comment: "请求ID",
+    // },
     status: {
       type: DataTypes.TINYINT(1),
       allowNull: false,
       defaultValue: 1,
       comment: "状态，1-正常，0-过期",
-    },
-    request_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      comment: "请求ID",
     },
     expired_at: {
       type: DataTypes.DATE,
