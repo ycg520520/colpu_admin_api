@@ -44,6 +44,10 @@ export default async function verify(ctx, next) {
 
     // 方法4: 本服务直接调用控制器方法 (最高效, 更安全)
     const user = await ctx.app.controller.auth._verifyToken(ctx);
+    const { uid } = user || {};
+    if (!uid) {
+      ctx.throw(401, '请先登录');
+    }
     ctx.state.user = user;
   } catch (error) {
     ctx.throw(401, error.message || "Invalid token");

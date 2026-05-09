@@ -2,17 +2,27 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 16:36:57
+ * @LastEditTime: 2026-05-09 23:54:14
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
-import pollTasker from '../../utils/ai/task-poller.js';
-import skillData from '../../config/skill.js';
+import TaskPoller from '../../utils/ai/task-poller.js';
+import aiGenerate from "../../utils/ai/index.js";
+import { progressStatus } from "../../utils/ai/utils.js";
 import { GoogleGenAI } from "@google/genai";
 export default class IndexController extends Controller {
-  async index(ctx) {
+  constructor(ctx) {
+    super(ctx);
+    const { ali } = this.config;
+    if (!ali?.default) {
+      return;
+    }
+    this.poller = new TaskPoller(this.config);
+  }
+
+  async getConfig(ctx) {
     ctx.respond({
       cdn: this.config.ali.default.domain,
       splash: {
@@ -27,25 +37,17 @@ export default class IndexController extends Controller {
         list: [
           {
             src: "static/ad/colorize.png",
-            href: 'pages/upload/index?id=16&model=colorizeImage',
-            title: '黑白上色',
+            href: "pages/upload/index?id=18",
+            title: "黑白上色",
           },
           {
             src: "static/ad/image_video.png",
-            href: 'pages/upload/index?id=17&model=wan2.6-image',
-            title: '照片转视频'
-          }
+            href: "pages/upload/index?id=15",
+            title: "照片转视频",
+          },
         ]
       },
-      skill_classify: skillData.reduce((acc, item) => {
-        acc[item.model] = item.name;
-        return acc;
-      }, {})
     });
-  }
-
-  async skill(ctx) {
-    ctx.respond(skillData);
   }
 
   async update(ctx) {
@@ -53,20 +55,33 @@ export default class IndexController extends Controller {
     const {
       task_id,
       output,
-      task_status, images } = ctx.validate({
+      task_status, images, progress, status, message, is_real_progress } = ctx.validate({
         body: {
           task_id: Joi.string().required(),
           output: Joi.object(),
           task_status: Joi.string(),
           images: Joi.array().items(Joi.string()),
+          progress: Joi.number().min(0).max(100),
+          status: Joi.string(),
+          message: Joi.string(),
+          is_real_progress: Joi.boolean(),
         },
       });
     try {
-      const data = await this.service.ai.ai.update({
+      const data = await this.service.ai.records.update({
         task_id,
         output,
         task_status,
         images
+      });
+      await this.service.ai.payload.upsertByTaskId({
+        task_id,
+        record_id: data.id,
+        output: output || {},
+        progress: progress ?? (task_status === 'SUCCEEDED' ? 100 : undefined),
+        status,
+        message,
+        is_real_progress: is_real_progress ?? false,
       });
       ctx.respond(data, null, '更新成功');
     } catch (error) {
@@ -77,26 +92,24 @@ export default class IndexController extends Controller {
 
   // 轮询所有任务
   async pollAllTask(ctx) {
-    const { aikeys, ali } = this.config;
-    pollTasker.init({
-      apikey: aikeys.ali_bailian,
-      updateTaskUrl: `http://127.0.0.1:8610/api/ai/task`,
-      ossOption: ali.default
-    });
-    const tasks = await this.service.ai.ai.getTasks();
+    const { ali } = this.config;
+    if (!ali?.default) {
+      ctx.throw(500, "OSS 未配置");
+    }
+    if (!this.poller) {
+      ctx.throw(500, "TaskPoller 未初始化（检查 Controller 构造是否因缺少 OSS 提前返回）");
+    }
+    const tasks = await this.service.ai.records.getTasks();
     if (!tasks) {
       ctx.throw(404, '任务不存在');
     }
-    pollTasker.add(tasks)
+    this.poller.add(tasks);
   }
 
   async list(ctx) {
     const query = ctx.validate(ctx.utils.schemaPagination());
     const { uid } = ctx.state.user || {};
-    if (!uid) {
-      ctx.throw(401, '请先登录');
-    }
-    const data = await this.service.ai.ai.list({ uid, ...query });
+    const data = await this.service.ai.records.list({ uid, ...query });
     return ctx.respond(data);
   }
   async detail(ctx) {
@@ -105,12 +118,101 @@ export default class IndexController extends Controller {
         id: Joi.string().required(),
       },
     });
-    const data = await this.service.ai.ai.findOne(id);
+    const data = await this.service.ai.records.findOne(id);
     return ctx.respond(data);
   }
 
-  async generate(ctx) {
+  async progress(ctx) {
+    const { task_id } = ctx.validate({
+      query: {
+        task_id: Joi.string().required(),
+      },
+    });
+    const progress = await this.service.ai.payload.getProgressByTaskId(task_id);
+    if (!progress) {
+      const task = await this.service.ai.records.findOneByTaskId(task_id);
+      if (task) {
+        const taskStatus = task.task_status;
+        const fallback = {
+          PENDING: { progress: 10, status: "PENDING", message: "任务排队中" },
+          RUNNING: { progress: 30, status: "RUNNING", message: "任务处理中" },
+          SUCCEEDED: { progress: 100, status: "SUCCEEDED", message: "任务完成" },
+          FAILED: { progress: 100, status: "FAILED", message: "任务失败" },
+          CANCELED: { progress: 100, status: progressStatus("CANCELED"), message: "任务已取消" },
+          UNKNOWN: { progress: 0, status: progressStatus("UNKNOWN"), message: "等待中" },
+        };
+        const state = fallback[taskStatus] || fallback.UNKNOWN;
+        return ctx.respond({
+          task_id,
+          ...state,
+          is_real_progress: false,
+        });
+      }
+      return ctx.respond({
+        task_id,
+        progress: 0,
+        status: "PENDING",
+        message: "任务排队中",
+        is_real_progress: false,
+      });
+    }
+    return ctx.respond(progress);
+  }
 
+  async generate(ctx) {
+    const { uid } = ctx.state.user || {};
+    const promptVariableItem = Joi.object({
+      name: Joi.string().required(),
+      value: Joi.string().allow("", null),
+    }).unknown(true);
+    const body = ctx.validate({
+      allowUnknown: false,
+      stripUnknown: true,
+      body: {
+        id: Joi.number().integer().required(),
+        images: Joi.array().items(Joi.string()).min(1).required(),
+        prompt: Joi.string().allow("", null).optional(),
+        prompt_variables: Joi.array().items(promptVariableItem).default([]),
+        size: Joi.string().optional(),
+        template: Joi.object().unknown(true).optional(),
+        point: Joi.number().integer().required(),
+
+        // viapi 等扩展字段，按需开启
+        scale: Joi.number(),
+        outputFormat: Joi.string(),
+        outputQuality: Joi.number(),
+        userData: Joi.string().allow("", null),
+        upscaleFactor: Joi.number(),
+        mode: Joi.string().valid("fast", "quality"),
+      },
+    });
+    if (!this.poller?.clients) {
+      ctx.throw(500, "AI 环境未初始化（通常因未配置 OSS，Controller 构造阶段已跳过）");
+    }
+    try {
+      const classify = await this.service.ai.classify.findOne(body.id);
+      if (!classify?.model) {
+        ctx.throw(400, `分类 id=${body.id} 未配置 model`);
+      }
+      const generateRes = await aiGenerate(this.poller.clients, {
+        body,
+        uid,
+        classify,
+      });
+      const recordRes = await this.service.ai.records.createRecordWithPayload(generateRes);
+      if (recordRes.task_status === 'PENDING') {
+        this.poller.add([{ task_id: generateRes.task_id, model: generateRes.model }]);
+      }
+      ctx.respond(recordRes);
+    } catch (error) {
+      console.error('generate error==>', error);
+      const msg = error?.message || "AI 生成失败";
+      const status = Number(error?.status ?? error?.statusCode);
+      if (Number.isFinite(status) && status >= 400 && status < 600) {
+        ctx.throw(status, msg);
+      }
+      ctx.throw(500, msg);
+    }
   }
 
   async test(ctx) {

@@ -2,39 +2,45 @@
  * @Author: colpu
  * @Date: 2026-03-27 08:44:18
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 16:45:22
+ * @LastEditTime: 2026-05-09 16:33:07
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 import { DataTypes } from "sequelize";
 import moment from "moment";
 export default (sequelize) => {
-  const Records = sequelize.define('Records', {
+  const Records = sequelize.define("Records", {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      comment: '主键ID'
+      comment: "主键ID"
     },
     uid: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: '用户ID'
+      comment: "用户ID"
     },
-    action: {
-      type: DataTypes.STRING,
+    classify_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      comment: "当前调用方法或模型",
+      comment: "classify 表主键，与生成请求 body.id 一致",
     },
-    task_type: {
-      type: DataTypes.STRING,
+    model: {
+      type: DataTypes.STRING(191),
       allowNull: false,
-      comment: "当前类型",
+      comment: "分类路由键，对应 classify.model；实现细节见 record_payloads.input 中的 provider_model",
     },
     task_id: {
       type: DataTypes.STRING,
       allowNull: false,
       comment: "任务输出结果",
+    },
+    task_status: {
+      type: DataTypes.ENUM("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"),
+      allowNull: false,
+      defaultValue: "PENDING",
+      comment: "任务状态枚举；前端进度条等见 record_payloads.status（字符串阶段）",
     },
     original_images: {
       type: DataTypes.JSON,
@@ -48,35 +54,6 @@ export default (sequelize) => {
       defaultValue: [],
       comment: "处理后的图片",
     },
-    task_status: {
-      type: DataTypes.ENUM("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"),
-      allowNull: false,
-      defaultValue: 'PENDING',
-      comment: "状态，PENDING：任务排队中，RUNNING：任务处理中，SUCCEEDED：任务执行成功，FAILED：任务执行失败，CANCELED：任务已取消，UNKNOWN：任务不存在或状态未知",
-    },
-    // input: {
-    //   type: DataTypes.JSON,
-    //   allowNull: false,
-    //   defaultValue: {},
-    //   comment: "输入参数",
-    // },
-    // output: {
-    //   type: DataTypes.JSON,
-    //   allowNull: false,
-    //   defaultValue: {},
-    //   comment: "完成输出结果",
-    // },
-    // parameters: {
-    //   type: DataTypes.JSON,
-    //   allowNull: false,
-    //   defaultValue: {},
-    //   comment: "参数",
-    // },
-    // request_id: {
-    //   type: DataTypes.STRING,
-    //   allowNull: true,
-    //   comment: "请求ID",
-    // },
     status: {
       type: DataTypes.TINYINT(1),
       allowNull: false,
@@ -90,18 +67,18 @@ export default (sequelize) => {
       comment: "过期时间",
     },
   }, {
-    tableName: 'records',
-    comment: '修复记录',
+    tableName: "records",
+    comment: "修复记录",
     timestamps: true,
     underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
+    createdAt: "created_at",
+    updatedAt: "updated_at",
     engine: "InnoDB",
     charset: "utf8mb4",
     collate: "utf8mb4_general_ci",
     hooks: {
       beforeCreate: async (record) => {
-        record.expired_at = moment().add(1, 'month');
+        record.expired_at = moment().add(1, "month");
       },
     }
   });

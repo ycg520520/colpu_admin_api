@@ -290,6 +290,13 @@ export async function clearHtml($, select) {
   return htmlStr;
 }
 
+/**
+ * 单例构造代理：多次 `new` 返回同一真实实例；仅首次执行真实构造函数。
+ * 后续若要换配置，应对该实例调用自身方法（如 `configure(...)`），勿指望再次 `new` 会重新执行构造函数。
+ * @template {new (...args: any[]) => any} C
+ * @param {C} className
+ * @returns {C}
+ */
 export function singleton(className) {
   let instance;
   const proxy = new Proxy(className, {
@@ -299,8 +306,8 @@ export function singleton(className) {
       }
       instance = Reflect.construct(target, args);
       return instance;
-    }
+    },
   });
-  proxy.prototype.constructor = proxy // 确保原型链正确;
+  proxy.prototype.constructor = proxy;
   return proxy;
 }

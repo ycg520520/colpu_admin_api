@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-24 16:52:46
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 12:58:39
+ * @LastEditTime: 2026-05-09 22:04:45
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -11,8 +11,8 @@ export default async ({ isSync, force }) => {
   console.log('🚀 Starting MySQL data initialization...');
   try {
     // 同步数据库
-    await db.initDatabase('colpu_ai', { force }); // 初始数据库
-    console.log('✅ Database synchronized');
+    await db.initDatabase("colpu_ai", { force });
+    console.log("✅ colpu_ai 已连接（表结构请执行: node scripts/migrate.js）");
     await initData(isSync)
   } catch (error) {
     console.error('❌ Data install failed:', error);

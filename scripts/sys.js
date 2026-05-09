@@ -11,7 +11,7 @@ export default async ({ isSync, force }) => {
   console.log('🚀 Starting MySQL data initialization...');
   try {
     // 同步数据库
-    await db.initDatabase('colpu_sys', { force }); // 初始数据库
+    await db.initDatabase("colpu_sys", { force });
     console.log('✅ Database synchronized');
     await initData(isSync);
   } catch (error) {

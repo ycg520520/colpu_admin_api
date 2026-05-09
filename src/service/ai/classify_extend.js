@@ -27,7 +27,7 @@ export default class ClassifyExtendService extends Base {
         // 将关联表的字段“提升”到主表，并重命名为你想要的字段名
         include: [
           [col('c.name'), 'name'],// c是belongsTo关联的别名
-          [col('c.model'), 'model']// c是belongsTo关联的别名
+          [col('c.model'), 'model'], // 与 records.model、classify.model 一致
           // 如果需要更多字段，继续添加： [col('c.otherField'), 'otherAlias']
         ]
       },

@@ -55,6 +55,10 @@ class DataBase {
     return sequelize;
   }
 
+  /**
+   * @param {string} dbkey
+   * @param {object} [syncOption] 传给 `sequelize.sync`；若 **`{ migrateOnly: true }`** 则只做建库/鉴权，不 sync（如 colpu_ai 仅信迁移）。
+   */
   async initDatabase(dbkey, syncOption = {}) {
     const options = this._parseConfig(dbkey);
     if (await this.createDatabaseIfNotExists(options)) {
@@ -63,12 +67,15 @@ class DataBase {
         sequelize = this.createClient(options);
       }
       const { database, host } = options;
-      // 测试连接
-      await sequelize.authenticate().then(() => {
-        console.log("数据库：%s 已经连接成功~", database);
-        // 同步数据
-        return this.syncModels(sequelize, host, syncOption);
-      })
+      await sequelize.authenticate();
+      console.log("数据库：%s 已经连接成功~", database);
+      if (syncOption.migrateOnly) {
+        console.log(
+          "已跳过 sequelize.sync：表结构请用迁移维护（colpu_ai 见 `node scripts/migrate.js`）。",
+        );
+        return;
+      }
+      return this.syncModels(sequelize, host, syncOption);
     }
   }
 
@@ -171,23 +178,24 @@ class DataBase {
         tempSequelize.close();
       });
   }
-  // 同步模型（创建表）
+
+  /** 按模型同步表结构（colpu_ai 请改用迁移 + `migrateOnly`，勿依赖本方法） */
   syncModels(sequelize, host = "127.0.0.1", option = {}) {
     const isDev = process.env.NODE_ENV === "development";
     console.log("是否开发环境:", isDev, process.env.NODE_ENV, option);
     return sequelize
       .sync({
-        force: isDev, // 强制重建表
-        alter: isDev, // 开发环境自动修改表结构
-        ...option
+        force: isDev,
+        alter: isDev,
+        ...option,
       })
       .then((res) => {
-        console.log(`在服务器:${host}, 所有模型同步成功~`,);
-        return res
+        console.log(`在服务器:${host}, 所有模型同步成功~`);
+        return res;
       })
       .catch((err) => {
         console.error(`在服务器:${host}, 同步模型失败:`, err);
-        Promise.reject(err);
+        return Promise.reject(err);
       });
   }
 }

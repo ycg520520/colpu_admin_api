@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:15:31
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 16:44:41
+ * @LastEditTime: 2026-05-09 17:10:21
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -12,6 +12,13 @@ import ImageenhanClient, { GenerateSuperResolutionImageRequest, MakeSuperResolut
 import ViapiClient, { GetAsyncJobResultRequest } from '@alicloud/viapi20230117';
 import { RuntimeOptions } from '@alicloud/tea-util';
 import AliOSS from "./alioss.js";
+export const VIAPI_FUN = new Set([
+  "generateSuperResolutionImage",
+  "makeSuperResolutionImage",
+  "colorizeImage",
+  "enhanceImageColor",
+  "faceEnhance",
+]);
 export default class AliViapi {
   constructor(option) {
     if (!option) {
@@ -25,7 +32,6 @@ export default class AliViapi {
     });
     this.runtime = new RuntimeOptions({});
     this.ossClient = new AliOSS(option);
-    this.task_type = 'viapi';
   }
   /**
    * @function generateSuperResolutionImage 生成式图像超分
@@ -40,7 +46,6 @@ export default class AliViapi {
    * @param {number} [data.outputQuality] 输出图像的质量因子，值越大质量越高。取值范围[30,100]，默认95，仅当outputFormat为jpg时有效。
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
-   * - task_type: 任务类型，固定为viapi
    * - model: 使用的操作名称，固定为generateSuperResolutionImage
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
@@ -62,7 +67,6 @@ export default class AliViapi {
       return {
         ...res.body,
         task_id: res.body.requestId,
-        task_type: this.task_type,
         model: "generateSuperResolutionImage"
       }
     });
@@ -81,7 +85,6 @@ export default class AliViapi {
    * @param {number} [data.outputQuality] 输出图像质量，仅当outputFormat为jpg时有效，默认为95，取值范围为1-100
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
-   * - task_type: 任务类型，固定为viapi
    * - model: 使用的操作名称，固定为makeSuperResolutionImage
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
@@ -107,7 +110,6 @@ export default class AliViapi {
         output: body.data,
         task_id: body.requestId,
         task_status: 'SUCCEEDED',
-        task_type: this.task_type,
         model: "makeSuperResolutionImage"
       }
     });
@@ -123,7 +125,6 @@ export default class AliViapi {
    * @param {string} [data.outputFormat] 输出图像的存储格式。取值范围：png、jpg、bmp，默认png。
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
-   * - task_type: 任务类型，固定为viapi
    * - model: 使用的操作名称，固定为enhanceImageColor
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
@@ -151,7 +152,6 @@ export default class AliViapi {
         output: body.data,
         task_id: body.requestId,
         task_status: 'SUCCEEDED',
-        task_type: this.task_type,
         model: "enhanceImageColor"
       }
     });
@@ -164,7 +164,6 @@ export default class AliViapi {
    * @param {string} data.imageUrl 输入图片地址。推荐使用上海地域的OSS链接，对于文件在本地或者非上海地域OSS链接的情况，[请参见文件URL处理](https://help.aliyun.com/zh/viapi/getting-started/the-file-url-processing?spm=a2c4g.11186623.0.0.50d948654yZ8VC)。
    * @returns {Promise<object>} 返回一个Promise对象，解析后包含以下字段：
    * - task_id: 任务ID，用于查询任务结果
-   * - task_type: 任务类型，固定为viapi
    * - model: 使用的操作名称，固定为colorizeImage
     * - 其他字段根据接口返回结果而定
     * @throws {Error} 如果请求参数不合法或者接口调用失败，将抛出一个Error对象，包含错误信息
@@ -189,7 +188,6 @@ export default class AliViapi {
         output: body.data,
         task_id: body.requestId,
         task_status: 'SUCCEEDED',
-        task_type: this.task_type,
         model: "colorizeImage"
       }
     });
@@ -213,7 +211,7 @@ export default class AliViapi {
     } else {
       output = {}
     }
-    return { task_id, task_status, output, images, task_type: this.task_type };
+    return { task_id, task_status, output, images };
   }
   getImages(output) {
     if (output.resultUrl) {

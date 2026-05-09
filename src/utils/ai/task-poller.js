@@ -1,158 +1,216 @@
 /**
- * @Author: colpu
- * @Date: 2026-03-28 21:49:21
- * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-10 11:24:33
- * @
- * @Copyright (c) 2026 by colpu, All Rights Reserved.
+ * AI 任务轮询：薄适配层 —— 组合「无依赖的 PollScheduler」与业务（进度平滑、HTTP 回写、SDK **`clients`**）。
+ * 默认导出为 **`singleton(TaskPoller)`**：**`new TaskPoller(appConfig)`** 在进程内始终得到同一实例；仅**首次**会执行构造函数（故 `appConfig` 以首次传入为准）。`updateTaskUrl` 等见 **`src/config/index.js`**。
+ * **`clients`**（见 **`./clients.js`** 的 `createClients`）既供 **`add` 轮询**（按 **`model`** → `clientKeyByModel` 选 SDK），也可作为 **`generate` 的 `tasker`**，与 **`add` 共用同一批 SDK 实例**。
+ *
+ * - 调度内核：./scheduler.js（零 fetcher / 零 SDK）
+ * - SDK 实例：`./clients.js`（`createClients`）
  */
-import Bailian from './bailian.js';
-import AliViapi from './viapi.js';
-import fetcher from './fetcher.js';
+import fetcher from "./fetcher.js";
+import PollScheduler from "./scheduler.js";
+import { createClients } from "./clients.js";
+import { clientKeyByModel, progressStatus } from "./utils.js";
+import { singleton } from "../../utils/index.js";
+
+export { createClients, PollScheduler };
+
 class TaskPoller {
-  constructor() {
-    this.pollTasks = Object.create(null); // 使用对象存储任务ID，避免重复和快速增删带来的Set迭代问题
-    this.timer = undefined;
-    this.interval;
-    this.running = false;
-  }
-
+  progressMap = Object.create(null);
+  runningTicks = Object.create(null);
+  interval = 2000;
+  updateTaskUrl = "";
   /**
-   *
-   * @param {Object} option
-   * @param {string} option.aikey - API Key
-   * @param {string} option.updateTaskUrl - 更新任务状态的接口地址
-   * @param {string} [option.uploadPath] - OSS 上的上传路径前缀，默认为 'upload/'
-   * @param {Object} option.oss - 阿里云 OSS 配置项，包含 region、accessKeyId、accessKeySecret、bucket 等
+   * 与 `generate(data.tasker)` 所需形状一致：`{ viapi, bailian?, comfyui? }`
+   * @type {ReturnType<typeof createClients>|null}
    */
-  init(option) {
-    if (!option.updateTaskUrl) throw new Error('updateTaskUrl is required');
-    this.updateTaskUrl = option.updateTaskUrl;
-    this.interval = option.interval || 2000;
-    this.bailian = new Bailian(option);
-    this.viapi = new AliViapi(option.ossOption);
+  clients = null;
+  /** @type {PollScheduler|null} */
+  _scheduler = null;
+
+  /**
+   * @param {Object} config - 应用层 config（与 `src/config/index.js` 导出一致）
+   * @param {string} config.updateTaskUrl - 回写任务进度的 HTTP 地址
+   * @param {object} config.ali.default - OSS / Viapi 等所需的 ossOption
+   * @param {object} [config.aikeys] - 含 `ali_bailian` 等，用于 `createClients`
+   * @param {object} [config.comfyOption] - ComfyUI（含 `baseUrl` 等）
+   * @param {object} [config.poll] - `interval` / `maxConcurrency` / `idleSleepMs` 可选
+   */
+  constructor(config) {
+    if (!config?.updateTaskUrl) {
+      throw new Error("updateTaskUrl is required（请在 app config 中配置，见 src/config/index.js）");
+    }
+    const ossOption = config.ali?.default;
+    if (!ossOption) {
+      throw new Error("config.ali.default is required for TaskPoller（ossOption）");
+    }
+    const clients = createClients({
+      aikeys: config.aikeys,
+      ossOption,
+      comfyOption: config.comfyOption,
+    });
+    if (clients == null || typeof clients !== "object") {
+      throw new Error("createClients returned invalid clients");
+    }
+    if (this._scheduler) {
+      this._scheduler.stop();
+      this._scheduler.clear();
+    }
+    this.updateTaskUrl = config.updateTaskUrl;
+    this.interval = config.poll?.interval ?? 2000;
+    this.clients = clients;
+
+    const interval = this.interval;
+    const maxConcurrency =
+      config.poll?.maxConcurrency !== undefined && config.poll?.maxConcurrency !== null
+        ? config.poll.maxConcurrency
+        : 5;
+    const idleSleepMs =
+      config.poll?.idleSleepMs !== undefined && config.poll?.idleSleepMs !== null
+        ? config.poll.idleSleepMs
+        : 30;
+    this._scheduler = new PollScheduler({
+      interval,
+      maxConcurrency,
+      idleSleepMs,
+      onAfterTick: async (raw, id, sched) => {
+        if (raw == null || typeof raw !== "object") return;
+        const merged = { ...raw, task_id: raw.task_id ?? id };
+        const patched = this.withProgress(merged);
+        await this.pushTaskUpdate(patched);
+        const st = patched?.task_status;
+        if (st === "SUCCEEDED" || st === "FAILED") {
+          sched.remove(id);
+          delete this.progressMap[id];
+          delete this.runningTicks[id];
+        }
+      },
+    });
   }
 
   /**
-   * 默认的查询阿里云任务的方法（需要根据实际 API 替换）
-   * @param {object} tasks - 任务对象，包含 task_id 和 task_type
-   * @param {string} tasks.task_id - 任务ID
-   * @param {string} tasks.task_type - 任务类型
-   * @returns {Promise<{task_status: string, output: any, message?: string}>}
+   * @param {Array<{ task_id: string, model: string }>} tasks - `model` 同 `records.model` / classify.model，经 `clientKeyByModel` 选 `clients` 并调用 `getResult`
    */
   async add(tasks) {
-    tasks.forEach(({ task_type, task_id }) => {
-      if (!this.pollTasks[task_type]) {
-        this.pollTasks[task_type] = new Set();
+    if (!this._scheduler) {
+      throw new Error(
+        "TaskPoller 未就绪：请先 new TaskPoller(appConfig) 再 add(tasks)",
+      );
+    }
+    const items = [];
+    for (const t of tasks) {
+      const { task_id, model } = t;
+      if (!task_id) {
+        throw new Error("TaskPoller.add: task_id is required");
       }
-      this.pollTasks[task_type].add(task_id);
-    });
-    this.run();
+      if (model == null || String(model).trim() === "") {
+        throw new Error(
+          "TaskPoller.add: model is required（与 records.model 一致）",
+        );
+      }
+      const clientKey = clientKeyByModel(model);
+      const client = this.clients?.[clientKey];
+      if (!client || typeof client.getResult !== "function") {
+        throw new Error(
+          `TaskPoller.add: no client.getResult for model "${model}" → "${clientKey}"`,
+        );
+      }
+      const tick = (id) => client.getResult(id);
+      if (this.progressMap[task_id] === undefined) {
+        this.progressMap[task_id] = 0;
+      }
+      if (this.runningTicks[task_id] === undefined) {
+        this.runningTicks[task_id] = 0;
+      }
+      items.push({ id: task_id, tick });
+    }
+    this._scheduler.add(items);
   }
 
-  /**
-   * 启动轮询器（如果尚未运行）
-   */
-  async run() {
-    if (this.running) return;
-    console.log('TaskPoller: Starting polling...');
-    this.running = true;
-    await this.poll();
-  }
-
-  /**
-   * 停止轮询器
-   */
   stop() {
-    // clearInterval(this.timer);
-    this.running = false;
-    console.log('TaskPoller: Polling stopped.');
+    this._scheduler?.stop();
   }
+
   pollSize() {
-    let size = 0;
-    for (const task_type in this.pollTasks) {
-      size += this.pollTasks[task_type].size;
-    }
-    return size;
+    return this._scheduler?.pollSize() ?? 0;
   }
 
-  /**
-   * 核心轮询逻辑
-   */
-  async poll() {
-    const start = Date.now();
-    console.log('TaskPoller: Polling...');
-    const size = this.pollSize();
-    console.log('TaskPoller: Polling tasks size:', size);
-    if (size === 0) {
-      console.log('TaskPoller: Polling completed.');
-      return this.stop();
-    }
-    const prs = []
-    for (const task_type in this.pollTasks) {
-      for (const task_id of this.pollTasks[task_type]) {
-        prs.push(this.getTaskResult(task_type, task_id).then(async (data) => {
-          if (data.task_status === 'SUCCEEDED') {
-            await this.updateTask(data);
-          }
-          return data;
-        }))
-      }
-    }
-    await Promise.all(prs);
-    const end = Date.now();
-    const duration = end - start;
-    const interval = Math.max(this.interval - duration, 0);
-    setTimeout(() => {
-      this.poll();
-    }, interval)
-  }
+  withProgress(data) {
+    const { task_status, task_id } = data || {};
+    const prev = this.progressMap[task_id] || 0;
+    let progress = prev;
+    let message = "等待中";
 
-  async getTaskResult(type, task_id) {
-    switch (type) {
-      case 'bailian':
-        return this.bailian.getResult(task_id);
-      case 'viapi':
-        return this.viapi.getResult(task_id);
+    switch (task_status) {
+      case "PENDING":
+        progress = Math.max(prev, 10);
+        message = "任务排队中";
+        this.runningTicks[task_id] = 0;
+        break;
+      case "RUNNING":
+        this.runningTicks[task_id] = (this.runningTicks[task_id] || 0) + 1;
+        {
+          const step = this.runningTicks[task_id] > 6 ? 3 : 7;
+          progress = Math.min(Math.max(prev, 25) + step, 85);
+        }
+        if (progress < 45) {
+          message = "生成中";
+        } else if (progress < 70) {
+          message = "细节增强中";
+        } else {
+          message = "结果整理中";
+        }
+        break;
+      case "SUCCEEDED":
+        progress = 100;
+        message = "任务完成";
+        this.runningTicks[task_id] = 0;
+        break;
+      case "FAILED":
+        progress = 100;
+        message = "任务失败";
+        this.runningTicks[task_id] = 0;
+        break;
+      case "CANCELED":
+        progress = 100;
+        message = "任务已取消";
+        this.runningTicks[task_id] = 0;
+        break;
+      case "UNKNOWN":
+        progress = Math.max(prev, 0);
+        message = "等待中";
+        break;
       default:
-        throw new Error(`Unknown task type: ${type}`);
+        progress = Math.max(prev, 0);
+        message = "等待中";
     }
+
+    const status = progressStatus(task_status);
+    this.progressMap[task_id] = progress;
+    return { ...data, progress, status, message, is_real_progress: false };
   }
 
-  async updateTask(data) {
-    const { task_status, task_id, task_type } = data;
+  async pushTaskUpdate(data) {
+    const { task_id } = data || {};
     try {
-      // 服务端更新状态
       await fetcher(this.updateTaskUrl, data, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'X-Verify-Skip': 'true',
+          "X-Verify-Skip": "true",
         },
-      }).then(res => {
+      }).then((res) => {
         console.log(`Task ${task_id} updated successfully:`, res);
-      }).catch(err => {
+      }).catch((err) => {
         console.log(`Task ${task_id} updated error:`, err);
       });
-      // 状态处理
-      switch (task_status) {
-        // 任务完成，失败将从任务池中删除掉对应任务
-        case 'SUCCEEDED':
-        case 'FAILED':
-          this.pollTasks[task_type].delete(task_id);
-          break;
-        // 运行中，等待下一次轮询
-        case 'PENDING':
-        case 'RUNNING':
-          break;
-        default:
-          console.error(`Unknown task status: ${task_status}`);
+      const st = data?.task_status;
+      const known = new Set(["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"]);
+      if (st != null && String(st) && !known.has(String(st))) {
+        console.error(`Unknown task status: ${st}`);
       }
     } catch (error) {
-      // 如果是网络错误或服务端错误，可以尝试重试
       console.error(`Failed to update task ${task_id}:`, error);
     }
   }
 }
 
-// 导出单例实例（假设使用环境变量配置）
-export default new TaskPoller();
+export default singleton(TaskPoller);

@@ -1,25 +1,13 @@
 /**
- * @Author: colpu
- * @Date: 2026-03-27 12:33:56
- * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-30 12:12:01
- * @
- * @Copyright (c) 2026 by colpu, All Rights Reserved.
+ * colpu_ai 库结构：仅通过本文件注册的 Umzug 迁移维护（不使用 sequelize.sync）。
+ * 新建库：先保证库存在 → `node scripts/migrate.js` → 再跑 `scripts/ai.js` 等灌数脚本。
  */
+import { Umzug, SequelizeStorage } from "umzug";
+import { aiDb } from "../src/models/ai/index.js";
+import colpuAiSchema from "./migrations/indian/colpu_ai_schema.js";
 
-import { Umzug, SequelizeStorage } from 'umzug';
-import { sysDb } from '../src/models/sys/index.js';
-import { cmsDb } from '../src/models/cms/index.js';
-import { aiDb } from '../src/models/ai/index.js';
-import records from './migrations/ai/records.js';
-
-const dbMap = {
-  sys: sysDb,
-  cms: cmsDb,
-  ai: aiDb,
-};
 const umzug = new Umzug({
-  migrations: [records],
+  migrations: [colpuAiSchema],
   context: aiDb.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize: aiDb }),
 });

@@ -32,7 +32,9 @@ export default class ClassifyService extends Base {
   async findOne(id) {
     const res = await classify.findByPk(id, { raw: true });
     if (!res) {
-      throw new Error(`分类ID：${id}不存在`);
+      const err = new Error(`分类ID：${id}不存在`);
+      err.status = 404;
+      throw err;
     }
     return res;
   }

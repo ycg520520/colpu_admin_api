@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-12-15 21:15:32
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-28 14:42:06
+ * @LastEditTime: 2026-05-07 10:02:12
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -11,9 +11,10 @@ export default (app) => {
   const { controller, childRouter, useChildRouter } = app;
   const router = childRouter({ prefix: '/ai' });
   const { index } = controller.ai;
-  router.get("/config", index.index);
-  router.get("/skill", index.skill);
+  router.get("/config", index.getConfig);
 
+  router.post("/generate", verify, index.generate);
+  router.get("/task/progress", verify, index.progress);
   router.put("/task", index.update);
   router.get("/task/list", verify, index.list);
   router.get("/task/detail", verify, index.detail);

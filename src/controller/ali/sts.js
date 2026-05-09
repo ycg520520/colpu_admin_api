@@ -63,12 +63,12 @@ export default class AliSTS extends Controller {
       hastime = false,
     } = ctx.validate({
       query: {
-        bucket: Joi.string().allow(null, ""),
-        type: Joi.string().allow(null, ""),
-        filename: Joi.string().allow(null, ""),
-        rename: Joi.boolean().allow(null, ""),
-        folder: Joi.string().allow(null, ""),
-        hastime: Joi.boolean().allow(null, ""),
+        bucket: Joi.string().allow("", null),
+        type: Joi.string().allow("", null),
+        filename: Joi.string().allow("", null),
+        rename: Joi.boolean().allow("", null),
+        folder: Joi.string().allow("", null),
+        hastime: Joi.boolean().allow("", null),
       },
       status: 10001,
     });

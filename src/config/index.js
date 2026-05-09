@@ -2,11 +2,11 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-27 22:35:31
+ * @LastEditTime: 2026-05-09 11:53:16
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys } from "../../.config.js";
+import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption } from "../../.config.js";
 export default {
   port: 8610,
   domain: "http://localhost:8610",
@@ -146,5 +146,7 @@ export default {
     redirectUri: 'https://grumpy-items-poke.loca.lt/api/wechat/callback', // 回调地址
   },
   aikeys,
+  comfyOption,
+  updateTaskUrl: `http://127.0.0.1:8610/api/ai/task`,
   default_user_prfix: "@AU@_"
 };

@@ -12,6 +12,7 @@ export const aiDb = db.use("colpu_ai");
 
 // 记录修复记录
 export const records = (await import("./records.js")).default(aiDb);
+export const recordPayloads = (await import("./record_payloads.js")).default(aiDb);
 export const template = (await import("./template.js")).default(aiDb);
 export const classify = (await import("./classify.js")).default(aiDb);
 export const classifyTemplate = (await import("./classify_template.js")).default(aiDb);
@@ -33,4 +34,15 @@ classifyExtend.belongsTo(classify, {
   foreignKey: 'classify_id',
   targetKey: 'id',
   as: 'c'
+});
+
+records.hasOne(recordPayloads, {
+  foreignKey: "record_id",
+  sourceKey: "id",
+  as: "payload",
+});
+recordPayloads.belongsTo(records, {
+  foreignKey: "record_id",
+  targetKey: "id",
+  as: "record",
 });
