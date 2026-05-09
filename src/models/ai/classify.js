@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-23 12:52:42
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-24 10:17:50
+ * @LastEditTime: 2026-05-10 00:25:17
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -97,6 +97,12 @@ export default (sequelize) => {
       allowNull: false,
       defaultValue: 1,
       comment: '是否启用增强，0表示不启用，1表示启用'
+    },
+    enable_size: {
+      type: DataTypes.TINYINT(1),
+      allowNull: false,
+      defaultValue: 1,
+      comment: '是否启用分辨率，0表示不启用，1表示启用'
     },
     cost_point: {
       type: DataTypes.INTEGER,
