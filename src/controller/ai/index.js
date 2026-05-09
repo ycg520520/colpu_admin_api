@@ -8,9 +8,9 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
-import TaskPoller from '../../utils/ai/task-poller.js';
-import aiGenerate from "../../utils/ai/index.js";
-import { progressStatus } from "../../utils/ai/utils.js";
+import TaskPoller from '../../ai/task-poller.js';
+import aiGenerate from "../../ai/index.js";
+import { progressStatus } from "../../ai/utils.js";
 import { GoogleGenAI } from "@google/genai";
 export default class IndexController extends Controller {
   constructor(ctx) {

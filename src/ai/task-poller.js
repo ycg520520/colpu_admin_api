@@ -10,7 +10,7 @@ import fetcher from "./fetcher.js";
 import PollScheduler from "./scheduler.js";
 import { createClients } from "./clients.js";
 import { clientKeyByModel, progressStatus } from "./utils.js";
-import { singleton } from "../../utils/index.js";
+import { singleton } from "../utils/index.js";
 
 export { createClients, PollScheduler };
 
