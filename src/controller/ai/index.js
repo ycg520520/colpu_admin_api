@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 23:54:14
+ * @LastEditTime: 2026-05-10 07:55:02
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -170,20 +170,37 @@ export default class IndexController extends Controller {
       stripUnknown: true,
       body: {
         id: Joi.number().integer().required(),
-        images: Joi.array().items(Joi.string()).min(1).required(),
+        point: Joi.number().integer().required(),
+        images: Joi.array().items(Joi.string()).default([]),
         prompt: Joi.string().allow("", null).optional(),
         prompt_variables: Joi.array().items(promptVariableItem).default([]),
         size: Joi.string().optional(),
         template: Joi.object().unknown(true).optional(),
-        point: Joi.number().integer().required(),
+
+        // ComfyUI 文生图等可选
+        width: Joi.number().integer().min(64).max(4096).optional(),
+        height: Joi.number().integer().min(64).max(4096).optional(),
+        seed: Joi.number().integer().min(0).optional(),
+        steps: Joi.number().integer().min(1).max(150).optional(),
+        cfg: Joi.number().min(0).max(30).optional(),
+        batch_size: Joi.number().integer().min(1).max(8).optional(),
+        prompt_positive: Joi.string().allow("", null).optional(),
+        prompt_negative: Joi.string().allow("", null).optional(),
+        clip_text_by_node_id: Joi.object().pattern(Joi.string(), Joi.string().allow("")).optional(),
+
+        // ComfyUI image_repair 等
+        repair_hint: Joi.string().allow("", null).optional(),
+        denoise: Joi.number().min(0).max(1).optional(),
+        guidance: Joi.number().min(0).max(20).optional(),
+        scale_to_length: Joi.number().integer().min(64).max(4096).optional(),
 
         // viapi 等扩展字段，按需开启
-        scale: Joi.number(),
-        outputFormat: Joi.string(),
-        outputQuality: Joi.number(),
-        userData: Joi.string().allow("", null),
-        upscaleFactor: Joi.number(),
-        mode: Joi.string().valid("fast", "quality"),
+        scale: Joi.number().optional(),
+        outputFormat: Joi.string().optional(),
+        outputQuality: Joi.number().optional(),
+        userData: Joi.string().allow("", null).optional(),
+        upscaleFactor: Joi.number().optional(),
+        mode: Joi.string().valid("fast", "quality").optional(),
       },
     });
     if (!this.poller?.clients) {
@@ -198,6 +215,7 @@ export default class IndexController extends Controller {
         body,
         uid,
         classify,
+        ctx,
       });
       const recordRes = await this.service.ai.records.createRecordWithPayload(generateRes);
       if (recordRes.task_status === 'PENDING') {

@@ -2,11 +2,11 @@ import { VIAPI_FUN } from './viapi.js';
 import { BAILIAN_MODELS } from "./bailian.js";
 import {
   generatePrompt,
-  workflowName,
   fixSrc,
   getSize,
   firstImage,
-  progressStatus
+  progressStatus,
+  workflowName,
 } from "./utils.js";
 /**
  * @param {object} clients
@@ -14,7 +14,8 @@ import {
  * @param {object} data.body
  * @param {string|number|undefined} data.uid
  * @param {object} data.classify — classify.findOne 的平铺结果（含id、model、prompt、prompt_variables、size等）
- * @returns {Promise<{ record: object, payload: object>|null }>}
+ * @param {object} [data.ctx] — 控制器 ctx，供扩展使用
+ * @returns {Promise<{ record: object, payload: object}|null }>}
  */
 export default async function generate(clients, data) {
   const { classify } = data;
@@ -152,7 +153,8 @@ async function comfyUIHandle(client, data) {
   const { body, uid, classify } = data;
   const model = String(classify.model).trim();
   const { id, images = [] } = body;
-  if (!client.comfyui) throw new Error("ComfyUI 未配置");
-  const output = await client.generate({ model, images });
+  if (!client) throw new Error("ComfyUI 未配置");
+  const prompt = generatePrompt({ classify, body });
+  const output = await client.generate({ ...body, model, prompt });
   return returnResult({ uid, model, images, id, input: { body }, output, is_real_progress: true });
 }

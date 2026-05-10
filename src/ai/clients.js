@@ -11,11 +11,11 @@
  */
 import Bailian from "./bailian.js";
 import AliViapi from "./viapi.js";
-import ComfyUI from "./comfyui.js";
+import ComfyUI from "./comfyui/index.js";
 
 /**
- * @param {{ aikeys?: { ali_bailian?: string }, ossOption: object, comfyOption?: { baseUrl: string } }} option
- * @returns {{ viapi: import("./viapi.js").default, bailian?: import("./bailian.js").default, comfyui?: import("./comfyui.js").default }}
+ * @param {{ aikeys?: { ali_bailian?: string }, ossOption: object, comfyOption?: { baseUrl: string, credentials?: object, testFeaturesTimeoutMs?: number } }} option
+ * @returns {{ viapi: import("./viapi.js").default, bailian?: import("./bailian.js").default, comfyui?: import("./comfyui/index.js").default }}
  */
 export function createClients(option) {
   const { aikeys, ossOption, comfyOption } = option;
@@ -23,7 +23,7 @@ export function createClients(option) {
     throw new Error("createClients: ossOption is required");
   }
   const viapi = new AliViapi(ossOption);
-  /** @type {{ viapi: import("./viapi.js").default, bailian?: import("./bailian.js").default, comfyui?: import("./comfyui.js").default }} */
+  /** @type {{ viapi: import("./viapi.js").default, bailian?: import("./bailian.js").default, comfyui?: import("./comfyui/index.js").default }} */
   const clients = { viapi };
   if (aikeys?.ali_bailian) {
     clients.bailian = new Bailian({
