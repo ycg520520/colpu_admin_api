@@ -6,7 +6,6 @@ import {
   getSize,
   firstImage,
   progressStatus,
-  workflowName,
 } from "./utils.js";
 /**
  * @param {object} clients

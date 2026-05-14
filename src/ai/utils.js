@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-01 23:21:03
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 22:11:18
+ * @LastEditTime: 2026-05-11 10:16:44
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -58,7 +58,7 @@ export function normalizeVariables(vars) {
  * console.log(result); // 输出: "生成一张512x512的图片"
  */
 export const composePrompt = (prompt, promptVariables) => {
-  let out = prompt == null ? "" : String(prompt);
+  let out = prompt === null ? "" : String(prompt);
   const vars = normalizeVariables(promptVariables);
   if (!Array.isArray(vars) || !vars.length) return out;
   for (const v of vars) {
@@ -80,7 +80,7 @@ export const composePrompt = (prompt, promptVariables) => {
  * - 模版提示词（template.prompt）可以包含变量占位符，如 {size}，会被替换为实际值。
  * - 模版变量（template.prompt_variables）支持两种格式：{ name, value } 或 { name, values: [{ value }] }。
  * - 如果 template.prompt 为 null 或 undefined，则视为 "" 处理。
- * 参照模版对象（含 prompt / prompt_variables）做变量替换，与 composePrompt 行为一致。
+ * - 与 {@link composePrompt} 行为一致，仅数据来源为 template。
  * @param {{ prompt?: string, prompt_variables?: unknown }} template
  * @return {string} 组合后的提示词字符串。
  * @example
@@ -100,38 +100,31 @@ export const composeTemplatePrompt = (template) => {
   return composePrompt(prompt, template.prompt_variables);
 };
 
-
 /**
  * @function generatePrompt
  * @description
- * 根据分类配置和请求参数构建最终的提示词字符串。
- * - 主提示词来源：body.prompt（优先）或 row.prompt（后备）。
- * - 模版提示词来源：body.template.template_prompt（优先）。
- * - 变量替换：对主提示词和模版提示词都进行变量替换，变量来源于 body.prompt_variables 和 body.template.prompt_variables。
- * - 大小参数：通过 body.size 或 classify.size 获取，并替换提示词中的 {size} 占位符。
+ * 根据分类与请求 body 拼出最终提示词，供 Comfy / 百炼等通道直接使用（各工作流不再重复拼文案）。
+ * - 主段：body.prompt 优先，否则用 classify.prompt；经 body.prompt_variables 占位替换、{size} 替换（body.size 或 classify.size，默认 1k）。
+ * - 中间段（可选）：body.promptPositive 或 body.prompt_positive，trim 后非空则作为独立一段参与拼接。
+ * - 模版段（可选）：body.template，经 {@link composeTemplatePrompt} 得到文案，trim 后非空则参与拼接。
+ * - 拼接顺序为主段、中间段、模版段，各段 trim，空段丢弃，段之间用换行符 \n 连接。
  * @param {object} opts
- * @param {Record<string, unknown>} opts.classify - 分类配置行，包含 model、prompt、size 等字段。
- * @param {Record<string, unknown>} opts.body - 生成请求的 body 参数，包含 prompt、template、prompt_variables 等字段。
- * @returns {string} 构建好的提示词字符串，包含主提示词和模版提示词（如果有）。
+ * @param {Record<string, unknown>} opts.classify - 分类行（含 prompt、size 等）
+ * @param {Record<string, unknown>} [opts.body={}] - 请求体（prompt、prompt_variables、prompt_positive / promptPositive、template、size 等）
+ * @returns {string} 最终提示词
  * @example
  * const classify = { prompt: "生成一张{size}的图片", size: "512x512" };
  * const body = { prompt: "生成一张{size}的猫咪图片", prompt_variables: [{ name: "size", value: "256x256" }] };
- * const result = generatePrompt({ classify, body });
- * console.log(result); // 输出: "生成一张256x256的猫咪图片"
+ * generatePrompt({ classify, body }); // "生成一张256x256的猫咪图片"
  */
-export function generatePrompt({ classify, body }) {
-  // size 可能来自 body 或 classify，body 优先级，默认 "1k"
+export function generatePrompt({ classify, body = {} }) {
   const size = getSize({ body, classify });
-
-  let prompt = !!body.prompt ? String(body.prompt) : String(classify.prompt ?? "");
-  prompt = composePrompt(prompt, body.prompt_variables)
+  let prompt = body.prompt || classify.prompt || '';
+  prompt = composePrompt(prompt, body.prompt_variables);
   prompt = composeSizePrompt(prompt, size);
-
-  const tplPrompt = composeTemplatePrompt(body.template);
-
-  const parts = [prompt, tplPrompt].map((item) => String(item).trim()).filter(Boolean);
-  if (parts.length) return parts.join("\n");
-  return "";
+  const promptPositive = body.promptPositive ?? body.prompt_positive;
+  const tplPrompt = composeTemplatePrompt(body.template).trim();
+  return [prompt, promptPositive, tplPrompt].map((s) => String(s).trim()).filter(Boolean).join("\n");
 }
 
 /**
@@ -157,8 +150,6 @@ export function getSize(data) {
   const { body, classify } = data;
   return body.size || classify.size || "1k";
 }
-
-
 
 /**
  * @param {string|undefined|null} model - classify.model

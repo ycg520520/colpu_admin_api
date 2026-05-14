@@ -14,10 +14,10 @@ const INPUT_KEYS = [
 
 /**
  * image_repair 工作流参数注入（API 格式图，见 workflows/image_repair.json）。
+ * 双图：`images[0]` → 节点 131，`images[1]` → 节点 132；两次 ins.uploadImage。
  * @param {object} schema - 工作流图
  * @param {{
  *   prompt?: string,
- *   promptPositive?: string,
  *   repair_hint?: string,
  *   seed?: number,
  *   steps?: number,
@@ -32,7 +32,6 @@ const INPUT_KEYS = [
 export default async function imageRepair(schema, opts, ins) {
   const {
     prompt,
-    promptPositive,
     repair_hint,
     seed,
     steps,
@@ -44,8 +43,12 @@ export default async function imageRepair(schema, opts, ins) {
   } = opts;
 
   const first = images[0];
+  const second = images[1];
   if (!first || String(first).trim() === "") {
-    throw new Error("image_repair 需要 body.images[0] 为可访问的原图 URL");
+    throw new Error("image_repair 需要 body.images[0]：老照片可访问 URL");
+  }
+  if (!second || String(second).trim() === "") {
+    throw new Error("image_repair 需要 body.images[1]：修复模版图可访问 URL");
   }
 
   let pb = new PromptBuilder(schema, INPUT_KEYS, [])
@@ -58,9 +61,8 @@ export default async function imageRepair(schema, opts, ins) {
     .setInputNode("guidance", "99.inputs.guidance")
     .setInputNode("scale_length", "106.inputs.scale_to_length");
 
-  const main = promptPositive ?? prompt;
-  if (main !== undefined && String(main).trim() !== "") {
-    pb = pb.input("repair_text", String(main).trim());
+  if (prompt) {
+    pb = pb.input("repair_text", String(prompt).trim());
   }
   if (repair_hint !== undefined && String(repair_hint).trim() !== "") {
     pb = pb.input("hint_text", String(repair_hint).trim());
@@ -74,6 +76,13 @@ export default async function imageRepair(schema, opts, ins) {
 
   const graph = JSON.parse(JSON.stringify(pb.workflow));
 
+  if (scale_to_length != null && graph["107"]?.inputs) {
+    graph["107"] = {
+      ...graph["107"],
+      inputs: { ...graph["107"].inputs, scale_to_length: scale_to_length },
+    };
+  }
+
   if (seed == null) {
     const node = graph["101"];
     if (node?.inputs && typeof node.inputs === "object") {
@@ -86,19 +95,29 @@ export default async function imageRepair(schema, opts, ins) {
 
   const text = graph["95"]?.inputs?.text;
   if (!String(text ?? "").trim()) {
-    throw new Error("image_repair 需要有效提示词：请配置 classify/body 的 prompt 或 prompt_positive");
+    throw new Error("image_repair：无有效提示词（classify / prompt / template）");
   }
 
   const uploaded = await ins.uploadImage(String(first).trim());
-  const name =
-    uploaded?.info?.filename ?? uploaded?.info?.name ?? uploaded?.filename;
-  if (!name) throw new Error("ComfyUI uploadImage 未返回文件名（info.filename / info.name）");
+  const name = uploaded?.info?.filename ?? uploaded?.info?.name ?? uploaded?.filename;
+  if (!name) throw new Error("老照片 uploadImage 未返回文件名（info.filename / info.name）");
+
+  const uploadedTpl = await ins.uploadImage(String(second).trim());
+  const nameTpl =
+    uploadedTpl?.info?.filename ?? uploadedTpl?.info?.name ?? uploadedTpl?.filename;
+  if (!nameTpl) throw new Error("模版图 uploadImage 未返回文件名（info.filename / info.name）");
 
   const load = graph["131"];
   if (!load?.inputs || typeof load.inputs !== "object") {
-    throw new Error("image_repair 工作流缺少节点 131 LoadImage");
+    throw new Error("image_repair 工作流缺少节点 131 LoadImage（老照片）");
   }
   graph["131"] = { ...load, inputs: { ...load.inputs, image: name } };
+
+  const loadTpl = graph["132"];
+  if (!loadTpl?.inputs || typeof loadTpl.inputs !== "object") {
+    throw new Error("image_repair 工作流缺少节点 132 LoadImage（修复模版）");
+  }
+  graph["132"] = { ...loadTpl, inputs: { ...loadTpl.inputs, image: nameTpl } };
 
   return graph;
 }

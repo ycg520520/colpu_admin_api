@@ -37,6 +37,8 @@ export function createClients(option) {
       ...comfyOption,
       baseUrl: String(comfyOption.baseUrl).replace(/\/$/, ""),
       ossOption,
+      assetsBaseUrl:
+        comfyOption.assetsBaseUrl ?? comfyOption.publicAssetsBase ?? ossOption?.domain ?? "",
     });
   }
 
