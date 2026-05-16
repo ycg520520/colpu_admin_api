@@ -70,7 +70,11 @@ export default (app) => {
   }
   app.use(cookie.default());
   // app.use(koaBody());
-  app.use(bodyParser());
+  app.use(
+    bodyParser({
+      enableTypes: ["json", "form"],
+    }),
+  );
 
   respond(app);
 };

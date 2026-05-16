@@ -31,7 +31,11 @@ function convertValue(value) {
     return value.map(convertValue);
   }
   if (typeof value === 'string') {
-    if (/^\d+$/.test(value)) return parseInt(value, 10);
+    // 仅安全整数才转 number；echostr 等长整型会超过 MAX_SAFE_INTEGER，parseInt 会丢精度
+    if (/^\d+$/.test(value)) {
+      const n = Number(value);
+      return Number.isSafeInteger(n) ? n : value;
+    }
     if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
     // 这里对true和false进行转换后，内部实现的query会将其转换为空值，所以这里不再处理
     // if (value === 'true') return true;

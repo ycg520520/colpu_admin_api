@@ -45,6 +45,7 @@ export default class UserService extends Base {
           "year",
           "created_at",
           "updated_at",
+          "points",
         ],
       where,
       raw: true,

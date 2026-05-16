@@ -2,11 +2,24 @@
  * @Author: colpu
  * @Date: 2025-12-15 16:22:53
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-23 14:01:35
+ * @LastEditTime: 2026-05-15 23:49:51
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { db, users, menus, dictTypes, dictData, roles, departments, post, permissions, clients, category, categoryType } from '../src/models/sys/index.js';
+import {
+  db,
+  users,
+  menus,
+  dictTypes,
+  dictData,
+  roles,
+  departments,
+  post,
+  permissions,
+  clients,
+  category,
+  categoryType,
+} from '../src/models/sys/index.js';
 export default async ({ isSync, force }) => {
   console.log('🚀 Starting MySQL data initialization...');
   try {

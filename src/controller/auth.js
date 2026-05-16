@@ -10,7 +10,7 @@ import Joi from "joi";
 import { Controller } from "@colpu/core";
 import jwt from "jsonwebtoken";
 import cryptoUtil from "../utils/crypto.js";
-import WechatOAuth from '../utils/wechat_oauth.js';
+import WechatOAuth from '../utils/wechat/auth.js';
 const refreshTokenAddMaxAge = 72e5; // 2小时，单位毫秒
 // const refreshTokenAddMaxAge = 10e3; // 2小时，单位毫秒
 export default class AuthController extends Controller {

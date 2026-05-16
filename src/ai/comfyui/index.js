@@ -9,10 +9,8 @@ import { fileURLToPath } from "url";
 import AliOSS from "../alioss.js";
 import textToImage from "./textToImage.js";
 import imageRepair from "./imageRepair.js";
-import idPhoto from "./idPhoto.js";
-import { tileViewUrlToOssKey } from "./idPhotoSheet.js";
 
-export const WORKFLOWS = new Set(["text_to_image", "image_repair", "id_photo"]);
+export const WORKFLOWS = new Set(["text_to_image", "image_repair"]);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default class ComfyUI {
   constructor(option) {
@@ -23,8 +21,6 @@ export default class ComfyUI {
     /** 用于把 `template.img_src` 相对路径拼成 Comfy 可下载的绝对 URL（一般为 OSS/CDN 根） */
     this.assetsBaseUrl = String(option.assetsBaseUrl ?? option.publicAssetsBase ?? "").replace(/\/$/, "");
     this._credentials = option.credentials;
-    /** @type {Map<string, { cols: number, rows: number, gap?: number, background?: string }>} */
-    this._idPhotoSheetByTask = new Map();
     /** @type {ComfyApi | null} */
     this._api = null;
     /** @type {Promise<void> | null} */
@@ -190,16 +186,7 @@ export default class ComfyUI {
         images: [],
       };
     }
-    const sheet = this._idPhotoSheetByTask.get(task_id);
-    if (sheet) this._idPhotoSheetByTask.delete(task_id);
-
-    let images;
-    if (sheet && this._shouldTileSheet(sheet) && viewUrls[0]) {
-      const key = await tileViewUrlToOssKey(viewUrls[0], sheet, this.ossClient);
-      images = key ? [key] : await this.ossClient.uploads(viewUrls);
-    } else {
-      images = await this.ossClient.uploads(viewUrls);
-    }
+    const images = await this.ossClient.uploads(viewUrls);
     return { ...mapped, images };
   }
 
@@ -210,8 +197,6 @@ export default class ComfyUI {
         return await textToImage(schema, options, this);
       case "image_repair":
         return await imageRepair(schema, options, this);
-      case "id_photo":
-        return await idPhoto(schema, options, this);
       default:
         throw new Error(`Unsupported workflow: ${workflow}`);
     }
@@ -237,21 +222,11 @@ export default class ComfyUI {
       throw new Error("ComfyUI appendPrompt failed: no prompt_id in response");
     }
     const { prompt_id } = res;
-    if (workflow === "id_photo" && data.id_photo_sheet && this._shouldTileSheet(data.id_photo_sheet)) {
-      this._idPhotoSheetByTask.set(prompt_id, data.id_photo_sheet);
-    }
     return {
       task_id: prompt_id,
       task_status: "PENDING",
       output: { prompt_id, workflow },
       model,
     };
-  }
-
-  _shouldTileSheet(sheet) {
-    if (!sheet || typeof sheet !== "object") return false;
-    const cols = Math.max(1, Number(sheet.cols) || 1);
-    const rows = Math.max(1, Number(sheet.rows) || 1);
-    return cols * rows > 1;
   }
 }

@@ -8,6 +8,7 @@
  */
 import { Controller } from "@colpu/core";
 import Joi from "joi";
+import crypto from "crypto";
 import TaskPoller from '../../ai/task-poller.js';
 import aiGenerate from "../../ai/index.js";
 import { progressStatus } from "../../ai/utils.js";
@@ -161,6 +162,9 @@ export default class IndexController extends Controller {
 
   async generate(ctx) {
     const { uid } = ctx.state.user || {};
+    if (!uid) {
+      ctx.throw(401, "未登录");
+    }
     const promptVariableItem = Joi.object({
       name: Joi.string().required(),
       value: Joi.string().allow("", null),
@@ -206,23 +210,52 @@ export default class IndexController extends Controller {
     if (!this.poller?.clients) {
       ctx.throw(500, "AI 环境未初始化（通常因未配置 OSS，Controller 构造阶段已跳过）");
     }
+    let consumeSnap = null;
+    const pendingRef = `pend_${crypto.randomBytes(10).toString("hex")}`;
     try {
       const classify = await this.service.ai.classify.findOne(body.id);
       if (!classify?.model) {
         ctx.throw(400, `分类 id=${body.id} 未配置 model`);
       }
+      const serverCost = this.service.ai.points.resolveConsumePoint(classify, body);
+      if (Number(body.point) !== Number(serverCost)) {
+        ctx.throw(
+          400,
+          `扣点与后台配置不一致，请刷新后重试（当前配置消耗 ${serverCost} 积分）`,
+        );
+      }
+      consumeSnap = await this.service.ai.points.consumeForAiTask({
+        uid,
+        amount: serverCost,
+        taskId: pendingRef,
+        classifyId: body.id,
+        title: classify.name ? `生成：${classify.name}` : "AI 生成消耗",
+        meta: { size: body.size, pending: true },
+      });
       const generateRes = await aiGenerate(this.poller.clients, {
         body,
         uid,
         classify,
         ctx,
       });
+      await this.service.ai.points.updateConsumeTaskRef(consumeSnap.logId, generateRes.task_id);
       const recordRes = await this.service.ai.records.createRecordWithPayload(generateRes);
       if (recordRes.task_status === 'PENDING') {
         this.poller.add([{ task_id: generateRes.task_id, model: generateRes.model }]);
       }
       ctx.respond(recordRes);
     } catch (error) {
+      if (consumeSnap?.logId) {
+        try {
+          await this.service.ai.points.refundConsumeLog({
+            uid,
+            consumeLogId: consumeSnap.logId,
+            reason: "任务记录写入失败，积分已退回",
+          });
+        } catch (re) {
+          console.error("points refund error==>", re);
+        }
+      }
       console.error('generate error==>', error);
       const msg = error?.message || "AI 生成失败";
       const status = Number(error?.status ?? error?.statusCode);

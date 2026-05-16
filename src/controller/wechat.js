@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-02-13 22:24:11
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-02-19 12:27:54
+ * @LastEditTime: 2026-05-15 21:23:40
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -12,7 +12,15 @@ import QRCode from 'qrcode';
 import { Controller } from "@colpu/core";
 import crypto from "crypto";
 import Joi from "joi";
-import WechatOAuth from '../utils/wechat_oauth.js';
+import WechatOAuth from '../utils/wechat/auth.js';
+import { verifyPushSignature, decryptMpMessagePlain } from "../utils/wechat/utils.js";
+
+/** 微信消息推送协议回包（不走 ctx.respond 统一包装） */
+function replyWxPush(ctx, errCode, errMsg) {
+  ctx.type = "application/json; charset=utf-8";
+  ctx.body = { ErrCode: errCode, ErrMsg: errMsg };
+}
+
 const wechatOAuth = new WechatOAuth({
   // getToken: async () => {
   //   // 从缓存或数据库获取 token
@@ -30,7 +38,7 @@ const wechatOAuth = new WechatOAuth({
   //   // 将 token 存储到缓存或数据库
   //   await saveTokenToStore(token);
   // }
-})
+});
 export default class WeChatController extends Controller {
   constructor(ctx) {
     super(ctx);
@@ -123,5 +131,90 @@ export default class WeChatController extends Controller {
 
     // // 5. 将token返回给前端，前端保存token，后续的接口调用都需要带上这个token
     // ctx.body = { success: true, data: { token: 'your_token', userInfo } };
+  }
+  /**
+   * 统一入口：可同时作为
+   * 小程序「消息推送」URL（数据格式 JSON）：虚拟支付 xpay_* 等。
+   * Token：与公众平台「消息推送」一致，使用 `config.wx.pushToken`。
+   */
+  async push(ctx) {
+    const { pushToken: token } = this.config.wx || {};
+    const query = ctx.query || {};
+    if (ctx.method === "GET" && query.echostr != null) {
+      if (!verifyPushSignature(query, token)) {
+        ctx.status = 403;
+        ctx.body = "forbidden";
+        return;
+      }
+      ctx.type = "text/plain; charset=utf-8";
+      ctx.body = String(query.echostr);
+      return;
+    }
+    if (ctx.method === "POST") {
+      const body = ctx.request.body || {};
+
+      if (body.action === "CheckContainerPath") {
+        return replyWxPush(ctx, 0, "success");
+      }
+
+      const wxCfg = this.config.wx || {};
+      let payload = body;
+
+      const encrypt = body.Encrypt;
+      if (encrypt && !wxCfg.encodingAESKey) {
+        ctx.status = 403;
+        return replyWxPush(ctx, 403, "no_encoding_aes_key");
+      }
+      if (!verifyPushSignature(query, token, encrypt)) {
+        ctx.status = 403;
+        return replyWxPush(
+          ctx,
+          403,
+          encrypt ? "invalid msg_signature" : "invalid signature",
+        );
+      }
+      if (encrypt) {
+        try {
+          const plain = decryptMpMessagePlain({
+            encodingAESKey: wxCfg.encodingAESKey,
+            encryptBase64: encrypt,
+            expectAppId: wxCfg.appId,
+          });
+          payload = JSON.parse(plain);
+        } catch (e) {
+          console.error("微信消息推送解密失败", e);
+          ctx.status = 403;
+          return replyWxPush(ctx, 403, "decrypt_fail");
+        }
+      }
+
+      const { Event: event, OutTradeNo: out_trade_no } = payload;
+      const transaction_id = payload.TransactionId || payload.WxOrderId || null;
+
+      if (
+        event !== "xpay_goods_deliver_notify" &&
+        event !== "xpay_coin_pay_notify"
+      ) {
+        return replyWxPush(ctx, 0, "success");
+      }
+
+      if (!out_trade_no) {
+        console.error("虚拟支付推送缺少 OutTradeNo", payload);
+      }
+      try {
+        const r = await this.service.ai.points.fulfillRechargeByNotify({
+          out_trade_no,
+          transaction_id,
+        });
+        if (!r?.ok && r?.reason && r.reason !== "order_not_found") {
+          return replyWxPush(ctx, 1, r.reason);
+        }
+      } catch (e) {
+        console.error("virtualPush fulfill error", e);
+        return replyWxPush(ctx, 1, "fulfill error");
+      }
+      return replyWxPush(ctx, 0, "success");
+    }
+    ctx.status = 405;
   }
 }

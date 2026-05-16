@@ -37,7 +37,7 @@ class AccessToken {
 
  * Examples:
  * ```
- * import WechatOAuth from './wechat_oauth.js';
+ * import WechatOAuth from './auth.js';
  * const api = new WechatOAuth({appid, appSecret});
  * ```
  * @param {Object} options 配置项

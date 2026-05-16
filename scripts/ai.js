@@ -2,11 +2,12 @@
  * @Author: colpu
  * @Date: 2026-03-24 16:52:46
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 22:04:45
+ * @LastEditTime: 2026-05-15 23:49:57
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
-import { db, aiDb, records, classify, template, classifyExtend } from '../src/models/ai/index.js';
+import { db, aiDb, records, classify, template, classifyExtend, rechargePackages } from '../src/models/ai/index.js';
+
 export default async ({ isSync, force }) => {
   console.log('🚀 Starting MySQL data initialization...');
   try {
@@ -33,7 +34,9 @@ async function initData(isSync) {
   for (const item of (await import('./data/ai/classify_extend.js')).default) {
     await classifyExtend.create(item);
   }
-
+  for (const item of (await import('./data/ai/recharge_packages.js')).default) {
+    await rechargePackages.upsert(item);
+  }
   // 创建客户端
   console.log('🎉 Data install completed successfully!');
 }

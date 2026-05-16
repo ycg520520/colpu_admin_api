@@ -2,11 +2,11 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 11:53:16
+ * @LastEditTime: 2026-05-15 22:14:45
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption } from "../../.config.js";
+import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption, virtualPay } from "../../.config.js";
 export default {
   port: 8610,
   domain: "http://localhost:8610",
@@ -141,12 +141,17 @@ export default {
       endpoint: "imageaudit.cn-shanghai.aliyuncs.com",
     },
   },
+  /**
+   * 微信：OAuth、消息推送、虚拟支付（米大师）。
+   * `virtualPay` 来自 `.config.js`（offerId、appKey / appKeySandbox、mode、env）；充值套餐表 colpu_ai.recharge_packages。
+   */
   wx: {
     ...wechat,
     redirectUri: 'https://grumpy-items-poke.loca.lt/api/wechat/callback', // 回调地址
+    virtualPay
   },
   aikeys,
   comfyOption,
   updateTaskUrl: `http://127.0.0.1:8610/api/ai/task`,
-  default_user_prfix: "@AU@_"
+  default_user_prfix: "@AU@_",
 };

@@ -117,6 +117,12 @@ export default (sequelize) => {
       type: DataTypes.STRING(500),  // 字符串类型，长度500
       comment: '描述'  // 字段注释
     },
+    points: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "可用积分（充值与赠送增加，AI 任务消耗）",
+    },
     lock_username: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

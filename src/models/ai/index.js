@@ -2,13 +2,17 @@
  * @Author: colpu
  * @Date: 2025-10-28 22:06:05
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 15:24:59
+ * @LastEditTime: 2026-05-15 23:52:06
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
 import DbInstances from "../../utils/db/index.js";
 export const db = DbInstances.mysql;
 export const aiDb = db.use("colpu_ai");
+
+export const pointLogs = (await import("./point_logs.js")).default(aiDb);
+export const rechargeOrders = (await import("./recharge_orders.js")).default(aiDb);
+export const rechargePackages = (await import("./recharge_packages.js")).default(aiDb);
 
 // 记录修复记录
 export const records = (await import("./records.js")).default(aiDb);
