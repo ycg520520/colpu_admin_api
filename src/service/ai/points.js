@@ -7,7 +7,6 @@ import crypto from "crypto";
 import {
   sysDb,
   users,
-  userThirdAuth,
 } from "../../models/sys/index.js";
 import {
   aiDb,
@@ -15,22 +14,8 @@ import {
   rechargeOrders,
   rechargePackages,
 } from "../../models/ai/index.js";
-import { resolveConsumePoint } from "../../utils/ai_points.js";
 import { virtualPaymentSigns, stringifyVirtualSignData, resolveVirtualAppKey } from "../../utils/wechat/virtual_pay.js";
-
 export default class PointsService extends Base {
-  resolveConsumePoint(classify, body) {
-    return resolveConsumePoint(classify, body);
-  }
-
-  async findOpenidByUserId(userId) {
-    const row = await userThirdAuth.findOne({
-      where: { user_id: userId },
-      attributes: ["openid"],
-      raw: true,
-    });
-    return row?.openid || null;
-  }
 
   async listLogs(uid, { page = 1, pageSize = 20 }) {
     return pointLogs.findAndCountAll({

@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-13 14:21:00
+ * @LastEditTime: 2026-05-16 08:27:50
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -160,6 +160,23 @@ export default class IndexController extends Controller {
     return ctx.respond(progress);
   }
 
+  /**
+   * @function consumePoint
+   * @description 根据分类和请求参数计算实际消耗积分
+   * @param {Object} classify
+   * @param {Object} body
+   * @returns
+   */
+  consumePoint(classify, body) {
+    const point = Number(classify?.cost_point) || 0;
+    const pointHd = Number(classify?.cost_point_hd) || 0;
+    if (point === pointHd) return point;
+    const reqSize = body?.size ?? classify?.size;
+    const hdSize = classify?.size_hd;
+    return reqSize === hdSize ? pointHd : point;
+  }
+
+
   async generate(ctx) {
     const { uid } = ctx.state.user || {};
     if (!uid) {
@@ -217,16 +234,16 @@ export default class IndexController extends Controller {
       if (!classify?.model) {
         ctx.throw(400, `分类 id=${body.id} 未配置 model`);
       }
-      const serverCost = this.service.ai.points.resolveConsumePoint(classify, body);
-      if (Number(body.point) !== Number(serverCost)) {
+      const amount = this.consumePoint(classify, body);
+      if (Number(body.point) !== Number(amount)) {
         ctx.throw(
           400,
-          `扣点与后台配置不一致，请刷新后重试（当前配置消耗 ${serverCost} 积分）`,
+          `扣点与后台配置不一致，请刷新后重试（当前配置消耗 ${amount} 积分）`,
         );
       }
       consumeSnap = await this.service.ai.points.consumeForAiTask({
         uid,
-        amount: serverCost,
+        amount,
         taskId: pendingRef,
         classifyId: body.id,
         title: classify.name ? `生成：${classify.name}` : "AI 生成消耗",

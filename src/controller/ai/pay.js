@@ -20,7 +20,7 @@ export default class PayController extends Controller {
     if (!client_id) {
       ctx.throw(400, "缺少 client_id，请使用小程序 OAuth 客户端登录");
     }
-    const { package_id, login_code } = ctx.validate({
+    const { product_id, login_code } = ctx.validate({
       body: {
         product_id: Joi.number().required(),
         login_code: Joi.string().required(),
