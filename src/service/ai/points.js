@@ -101,6 +101,47 @@ export default class PointsService extends Base {
     });
   }
 
+  /**
+   * 新用户注册赠送积分（与充值类似：先改 users.points，再写 point_logs；跨库失败时回滚 users）。
+   * @returns {Promise<{ granted: number, balance_after: number } | null>} 未配置或金额为 0 时返回 null
+   */
+  async grantRegisterWelcome({ uid }) {
+    const amount = Number(this.config.givePoint);
+    if (!Number.isFinite(amount) || amount <= 0) return null;
+
+    return aiDb.transaction(async (tAi) => {
+      const existed = await pointLogs.findOne({
+        where: {
+          uid: String(uid),
+          biz_type: "grant",
+          ref_type: "register_welcome",
+        },
+        transaction: tAi,
+        raw: true,
+      });
+      if (existed) return { granted: 0, balance_after: Number(existed.balance_after), duplicate: true };
+
+      const r = await this.#grantPointsWithSysRollbackOnLogFail({
+        uid,
+        amount,
+        tAi,
+        buildLogRow: (balanceAfter) => ({
+          uid: String(uid),
+          delta: amount,
+          balance_after: balanceAfter,
+          biz_type: "grant",
+          title: "新用户注册赠送",
+          ref_type: "register_welcome",
+          ref_id: String(uid),
+          meta: { source: "config.givePoint" },
+        }),
+      });
+
+      if (!r.ok) return null;
+      return { granted: amount, balance_after: r.balance_after };
+    });
+  }
+
   async updateConsumeTaskRef(logId, taskId) {
     await pointLogs.update(
       { ref_id: String(taskId) },
@@ -247,61 +288,82 @@ export default class PointsService extends Base {
 
       const grant = order.point;
       const uid = order.uid;
-      let hasUser = false;
-      let balanceAfter = 0;
+      const r = await this.#grantPointsWithSysRollbackOnLogFail({
+        uid,
+        amount: grant,
+        tAi,
+        buildLogRow: (balanceAfter) => ({
+          uid: String(uid),
+          delta: grant,
+          balance_after: balanceAfter,
+          biz_type: "recharge",
+          title: order.description || "虚拟支付充值",
+          ref_type: "recharge_order",
+          ref_id: String(order.id),
+          meta: { out_trade_no, transaction_id },
+        }),
+        afterPointLog: () =>
+          order.update(
+            {
+              status: "success",
+              transaction_id: transaction_id || null,
+            },
+            { transaction: tAi },
+          ),
+      });
 
+      if (!r.ok) return { ok: false, reason: "user_missing" };
+      return { ok: true, duplicate: false };
+    });
+  }
+
+  /**
+   * 发放积分：先改 users.points，再在 point_logs 落账（跨库）。
+   * 写 point_logs 或 afterPointLog 失败时回滚 users 上的增量。
+   */
+  async #grantPointsWithSysRollbackOnLogFail({ uid, amount, tAi, buildLogRow, afterPointLog }) {
+    const uidStr = String(uid);
+    const grant = Number(amount);
+    if (!Number.isFinite(grant) || grant <= 0) {
+      throw Object.assign(new Error("发放积分金额无效"), { status: 400 });
+    }
+
+    let hasUser = false;
+    let balanceAfter = 0;
+
+    await sysDb.transaction(async (tSys) => {
+      const user = await users.findOne({
+        where: { uid: uidStr },
+        transaction: tSys,
+        lock: tSys.LOCK.UPDATE,
+      });
+      if (!user) return;
+      hasUser = true;
+      const cur = Number(user.points) || 0;
+      balanceAfter = cur + grant;
+      await user.update({ points: balanceAfter }, { transaction: tSys });
+    });
+
+    if (!hasUser) return { ok: false, reason: "user_missing" };
+
+    try {
+      await pointLogs.create(buildLogRow(balanceAfter), { transaction: tAi });
+      if (afterPointLog) await afterPointLog();
+    } catch (e) {
       await sysDb.transaction(async (tSys) => {
         const user = await users.findOne({
-          where: { uid },
+          where: { uid: uidStr },
           transaction: tSys,
           lock: tSys.LOCK.UPDATE,
         });
-        if (!user) return;
-        hasUser = true;
-        const cur = Number(user.points) || 0;
-        balanceAfter = cur + grant;
-        await user.update({ points: balanceAfter }, { transaction: tSys });
+        if (user) {
+          const next = Math.max(0, (Number(user.points) || 0) - grant);
+          await user.update({ points: next }, { transaction: tSys });
+        }
       });
+      throw e;
+    }
 
-      if (!hasUser) return { ok: false, reason: "user_missing" };
-
-      try {
-        await pointLogs.create(
-          {
-            uid: String(uid),
-            delta: grant,
-            balance_after: balanceAfter,
-            biz_type: "recharge",
-            title: order.description || "虚拟支付充值",
-            ref_type: "recharge_order",
-            ref_id: String(order.id),
-            meta: { out_trade_no, transaction_id },
-          },
-          { transaction: tAi },
-        );
-        await order.update(
-          {
-            status: "success",
-            transaction_id: transaction_id || null,
-          },
-          { transaction: tAi },
-        );
-      } catch (e) {
-        await sysDb.transaction(async (tSys) => {
-          const user = await users.findOne({
-            where: { uid },
-            transaction: tSys,
-            lock: tSys.LOCK.UPDATE,
-          });
-          if (user) {
-            const next = Math.max(0, (Number(user.points) || 0) - grant);
-            await user.update({ points: next }, { transaction: tSys });
-          }
-        });
-        throw e;
-      }
-
-      return { ok: true, duplicate: false };
-    });
+    return { ok: true, balance_after: balanceAfter };
   }
 }

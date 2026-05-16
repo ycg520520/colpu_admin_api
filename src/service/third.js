@@ -33,6 +33,7 @@ export default class ThirdAuthService extends Base {
     const { openid, type, unionid } = params;
     // 创建一个事务，作用是在整个事务中进行数据操作，如果某个操作失败，则整个事务回滚
     const transaction = await sysDb.transaction();
+    let isNewUser = false;
     try {
       // 1. 查询ThirdAuth 记录是否存在
       let thirdAuthRes = await thirdAuth.findOne({
@@ -42,6 +43,7 @@ export default class ThirdAuthService extends Base {
       let user = null;
       if (!thirdAuthRes) {
         user = await this._createAuthUser(params, transaction);
+        isNewUser = true;
         thirdAuthRes = await thirdAuth.create({
           type,
           openid,
@@ -62,6 +64,7 @@ export default class ThirdAuthService extends Base {
         } else {
           // 未绑定：创建新用户，更新第三方记录，建立关联
           user = await this._createAuthUser(params, transaction);
+          isNewUser = true;
 
           // 更新第三方授权记录为已绑定
           await thirdAuthRes.update({ isbind: 1 }, { transaction });
@@ -72,6 +75,13 @@ export default class ThirdAuthService extends Base {
       }
       // 提交事务
       await transaction.commit();
+      if (isNewUser && user?.uid) {
+        try {
+          await this.service.ai.points.grantRegisterWelcome({ uid: user.uid });
+        } catch (e) {
+          console.error("[third.create] grantRegisterWelcome failed", e);
+        }
+      }
       return user.toJSON();
     } catch (error) {
       await transaction.rollback();

@@ -154,4 +154,6 @@ export default {
   comfyOption,
   updateTaskUrl: `http://127.0.0.1:8610/api/ai/task`,
   default_user_prfix: "@AU@_",
+  /** 三方首次注册赠送积分；<=0 关闭 */
+  givePoint: 100,
 };
