@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-15 22:14:45
+ * @LastEditTime: 2026-05-18 17:23:28
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -58,6 +58,11 @@ export default {
           dateStrings: "TIMESTAMP",
           typeCast: true,
           multipleStatements: true,
+          charset: 'utf8mb4',
+        },
+        define: {
+          charset: 'utf8mb4',
+          collate: 'utf8mb4_unicode_ci'
         },
         timezone: "+08:00",
       },
