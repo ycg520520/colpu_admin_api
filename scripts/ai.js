@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-24 16:52:46
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-18 17:36:22
+ * @LastEditTime: 2026-05-18 17:39:18
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -25,7 +25,9 @@ async function initData(isSync) {
     await classify.create(item);
   }
   for (const item of (await import('./data/ai/template.js')).default) {
-    item.prompt_variables = JSON.stringify(item.prompt_variables);
+    if (!!item.prompt_variables) {
+      item.prompt_variables = JSON.stringify(item.prompt_variables);
+    }
     await template.create(item);
   }
   for (const item of (await import('./data/ai/classify_template.js')).default) {
