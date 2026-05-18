@@ -7,9 +7,17 @@ import { aiDb } from "../src/models/ai/index.js";
 import colpuAiSchema from "./migrations/indian/colpu_ai_schema.js";
 import colpuAiPointsRecharge from "./migrations/indian/colpu_ai_points_recharge.js";
 import colpuAiPointLogsUserIdToUid from "./migrations/indian/colpu_ai_point_logs_user_id_to_uid.js";
+import colpuAiPackageInvite from "./migrations/indian/colpu_ai_package_invite.js";
+import colpuAiInviteRenameTables from "./migrations/indian/colpu_ai_invite_rename_tables.js";
 
 const umzug = new Umzug({
-  migrations: [colpuAiSchema, colpuAiPointsRecharge, colpuAiPointLogsUserIdToUid],
+  migrations: [
+    colpuAiSchema,
+    colpuAiPointsRecharge,
+    colpuAiPointLogsUserIdToUid,
+    colpuAiPackageInvite,
+    colpuAiInviteRenameTables,
+  ],
   context: aiDb.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize: aiDb }),
 });

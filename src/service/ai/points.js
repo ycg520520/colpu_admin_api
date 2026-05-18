@@ -17,6 +17,11 @@ import {
 import { virtualPaymentSigns, stringifyVirtualSignData, resolveVirtualAppKey } from "../../utils/wechat/virtual_pay.js";
 export default class PointsService extends Base {
 
+  /** 充值订单应发放/扣回的积分合计（基础 + 附赠） */
+  rechargeGrantTotal(order) {
+    return (Number(order?.point) || 0) + (Number(order?.give_point) || 0);
+  }
+
   async listLogs(uid, { page = 1, pageSize = 20 }) {
     return pointLogs.findAndCountAll({
       where: { uid: String(uid) },
@@ -202,12 +207,14 @@ export default class PointsService extends Base {
     uid,
     session_key,
     wx,
-    sale_price,
-    price,
-    point,
+    sale_price = 0,
+    price = 0,
+    point = 0,
+    give_point = 0,
     description,
     product_id,
-    buy_quantity,
+    buy_quantity = 1,
+    invite_campaign_id,
   }) {
     const virtual = wx?.virtualPay || {};
     const { offerId, mode = "short_series_goods", env = 0 } = virtual;
@@ -226,16 +233,18 @@ export default class PointsService extends Base {
       product_id: String(product_id),
       sale_price,
       point,
+      give_point,
       status: "pending",
       description,
       prepay_id: null,
+      invite_campaign_id: invite_campaign_id != null ? invite_campaign_id : null,
     });
     const attach = `oid=${order.id}`;
     let signObj;
     if (mode === "short_series_coin") {
       signObj = {
         offerId: String(offerId),
-        buyQuantity: buy_quantity > 0 ? buy_quantity : 1,
+        buyQuantity: buy_quantity,
         env: envNum,
         currencyType: "CNY",
         outTradeNo: out_trade_no,
@@ -263,6 +272,8 @@ export default class PointsService extends Base {
       order_id: order.id,
       out_trade_no,
       point,
+      give_point,
+      total_point: point + give_point,
       price,
       sale_price,
       mode,
@@ -274,10 +285,73 @@ export default class PointsService extends Base {
   }
 
   /**
+   * 虚拟支付现金原路退款成功后，扣回该笔充值已发放的积分（幂等）。
+   */
+  async revokeRechargePointsForCashRefund({ uid, rechargeOrderId, pointAmount, transaction: tAi }) {
+    const uidStr = String(uid);
+    const n = Number(pointAmount);
+    if (!Number.isFinite(n) || n <= 0) return;
+
+    const existed = await pointLogs.findOne({
+      where: {
+        uid: uidStr,
+        biz_type: "recharge_revoke",
+        ref_type: "recharge_order",
+        ref_id: String(rechargeOrderId),
+      },
+      transaction: tAi,
+      raw: true,
+    });
+    if (existed) return;
+
+    let balanceAfter = 0;
+    await sysDb.transaction(async (tSys) => {
+      const user = await users.findOne({
+        where: { uid: uidStr },
+        transaction: tSys,
+        lock: tSys.LOCK.UPDATE,
+      });
+      if (!user) throw Object.assign(new Error("用户不存在"), { status: 404 });
+      const cur = Number(user.points) || 0;
+      balanceAfter = Math.max(0, cur - n);
+      await user.update({ points: balanceAfter }, { transaction: tSys });
+    });
+
+    try {
+      await pointLogs.create(
+        {
+          uid: uidStr,
+          delta: -n,
+          balance_after: balanceAfter,
+          biz_type: "recharge_revoke",
+          title: "满员返现（现金原路退回）扣回积分",
+          ref_type: "recharge_order",
+          ref_id: String(rechargeOrderId),
+          meta: { source: "invite_refund" },
+        },
+        { transaction: tAi },
+      );
+    } catch (e) {
+      await sysDb.transaction(async (tSys) => {
+        const user = await users.findOne({
+          where: { uid: uidStr },
+          transaction: tSys,
+          lock: tSys.LOCK.UPDATE,
+        });
+        if (user) {
+          await user.update({ points: (Number(user.points) || 0) + n }, { transaction: tSys });
+        }
+      });
+      throw e;
+    }
+  }
+
+  /**
    * 支付回调：幂等发放积分
    */
   async fulfillRechargeByNotify({ out_trade_no, transaction_id }) {
-    return aiDb.transaction(async (tAi) => {
+    let queueRefundCampaignId = null;
+    const result = await aiDb.transaction(async (tAi) => {
       const order = await rechargeOrders.findOne({
         where: { out_trade_no },
         transaction: tAi,
@@ -286,7 +360,7 @@ export default class PointsService extends Base {
       if (!order) return { ok: false, reason: "order_not_found" };
       if (order.status === "success") return { ok: true, duplicate: true };
 
-      const grant = order.point;
+      const grant = this.rechargeGrantTotal(order);
       const uid = order.uid;
       const r = await this.#grantPointsWithSysRollbackOnLogFail({
         uid,
@@ -300,7 +374,12 @@ export default class PointsService extends Base {
           title: order.description || "虚拟支付充值",
           ref_type: "recharge_order",
           ref_id: String(order.id),
-          meta: { out_trade_no, transaction_id },
+          meta: {
+            out_trade_no,
+            transaction_id,
+            point: order.point,
+            give_point: order.give_point,
+          },
         }),
         afterPointLog: () =>
           order.update(
@@ -313,8 +392,34 @@ export default class PointsService extends Base {
       });
 
       if (!r.ok) return { ok: false, reason: "user_missing" };
+
+      const pkg = await rechargePackages.findByPk(order.product_id, { transaction: tAi, raw: true });
+      if (order.invite_campaign_id) {
+        queueRefundCampaignId = await this.service.ai.invite.recordInviteeAndMaybeQueueRefund({
+          order,
+          transaction: tAi,
+        });
+      } else if (pkg) {
+        await this.service.ai.invite.ensureLeaderCampaignAfterLeaderPaid({
+          order,
+          pkg,
+          transaction: tAi,
+        });
+      }
+
       return { ok: true, duplicate: false };
     });
+
+    if (queueRefundCampaignId) {
+      const id = queueRefundCampaignId;
+      setImmediate(() => {
+        this.service.ai.invite.tryRefundLeader(id).catch((err) => {
+          console.error("[invite] tryRefundLeader", err);
+        });
+      });
+    }
+
+    return result;
   }
 
   /**

@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-23 12:52:42
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-10 00:25:17
+ * @LastEditTime: 2026-05-18 16:21:32
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -151,6 +151,12 @@ export default (sequelize) => {
       defaultValue: 0,
       comment: "是否为热门，0表示普通，1表示热门",
     },
+    is_tip: {
+      type: DataTypes.TINYINT(1),
+      allowNull: false,
+      defaultValue: 0,
+      comment: "是否为提示，0表示不提示，1表示提示",
+    },
     sort_order: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
@@ -159,6 +165,12 @@ export default (sequelize) => {
     remark: {
       type: DataTypes.STRING(500),
       comment: '描述'
+    },
+    disabled: {
+      type: DataTypes.TINYINT(1),
+      allowNull: false,
+      defaultValue: 0,
+      comment: "功能状态，0可使用，1不可使用",
     },
     status: {
       type: DataTypes.TINYINT(1),

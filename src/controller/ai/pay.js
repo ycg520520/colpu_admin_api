@@ -8,8 +8,8 @@ import { jsCode2Session } from "../../utils/wechat/virtual_pay.js";
 
 export default class PayController extends Controller {
   async packages(ctx) {
-    const packages = await this.service.ai.points.listRechargePackages();
-    ctx.respond({ packages });
+    const res = await this.service.ai.points.listRechargePackages();
+    ctx.respond(res);
   }
 
   /**
@@ -20,10 +20,11 @@ export default class PayController extends Controller {
     if (!client_id) {
       ctx.throw(400, "缺少 client_id，请使用小程序 OAuth 客户端登录");
     }
-    const { product_id, login_code } = ctx.validate({
+    const { product_id, login_code, invite_code } = ctx.validate({
       body: {
         product_id: Joi.number().required(),
         login_code: Joi.string().required(),
+        invite_code: Joi.string().trim().hex().length(8).optional().allow(null, ""),
       },
     });
     const { secret_key } = (await this.service.clients.findOne(client_id)) || {};
@@ -39,7 +40,7 @@ export default class PayController extends Controller {
     }
     const pkg = await this.service.ai.points.findRechargePackageById(product_id);
     if (!pkg) ctx.throw(400, "套餐不存在");
-    const { sale_price, price, point, name, buy_quantity } = pkg;
+    const { sale_price = 0, price = 0, point = 0, give_point = 0, name, buy_quantity } = pkg;
     if (sale_price == null || sale_price <= 0) {
       ctx.throw(400, "套餐实付价（sale_price）无效");
     }
@@ -50,6 +51,11 @@ export default class PayController extends Controller {
       ctx.throw(400, "套餐积分无效");
     }
     const description = pkg.description || name || "积分充值";
+    const { invite_campaign_id } = await this.service.ai.invite.resolveInviteCampaignForCreateOrder({
+      uid,
+      product_id,
+      invite_code,
+    });
     const { session_key } = await jsCode2Session(client_id, secret_key, login_code);
     const data = await this.service.ai.points.createRechargeVirtualSession({
       uid,
@@ -58,10 +64,35 @@ export default class PayController extends Controller {
       sale_price,
       price,
       point,
+      give_point,
       description,
       product_id,
       buy_quantity: buy_quantity > 0 ? buy_quantity : 1,
+      invite_campaign_id,
     });
+    ctx.respond(data);
+  }
+
+  /** 邀请落地页：根据邀请码查活动进度（无需登录） */
+  async inviteSummary(ctx) {
+    const { invite_code } = ctx.validate({
+      query: {
+        invite_code: Joi.string().trim().length(8).hex().required(),
+      },
+    });
+    const data = await this.service.ai.invite.publicSummaryByCode(invite_code);
+    ctx.respond(data);
+  }
+
+  /** 团长查看某笔已支付订单的邀请码与进度 */
+  async inviteForOrder(ctx) {
+    const { uid } = ctx.state.user || {};
+    const { order_id } = ctx.validate({
+      query: {
+        order_id: Joi.number().integer().positive().required(),
+      },
+    });
+    const data = await this.service.ai.invite.leaderInvitePanel({ uid, orderId: order_id });
     ctx.respond(data);
   }
 }

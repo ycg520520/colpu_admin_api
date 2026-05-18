@@ -1,6 +1,7 @@
 /**
  * @Author: colpu
  * @Date: 2026-05-14
+ * 若无附赠列：`ALTER TABLE recharge_orders ADD COLUMN give_point INT NOT NULL DEFAULT 0 COMMENT '支付成功后附赠积分（下单快照）' AFTER point;`
  */
 import { DataTypes } from "sequelize";
 
@@ -38,7 +39,13 @@ export default (sequelize) => {
       point: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        comment: "支付成功后发放给用户的积分数量",
+        comment: "支付成功后发放的基础积分（下单时快照套餐 point）",
+      },
+      give_point: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        comment: "支付成功后附赠积分（下单时快照套餐 give_point）",
       },
       status: {
         type: DataTypes.STRING(20),
@@ -61,6 +68,11 @@ export default (sequelize) => {
         allowNull: true,
         comment: "商品描述，下单时取套餐 description 或 name，用于展示与对账",
       },
+      invite_campaign_id: {
+        type: DataTypes.BIGINT.UNSIGNED,
+        allowNull: true,
+        comment: "非空表示使用邀请码参团，对应 invite_campaigns.id",
+      },
     },
     {
       tableName: "recharge_orders",
@@ -74,6 +86,7 @@ export default (sequelize) => {
       indexes: [
         { name: "idx_recharge_orders_uid", fields: ["uid"] },
         { name: "idx_recharge_orders_status", fields: ["status"] },
+        { name: "idx_recharge_orders_invite_campaign_id", fields: ["invite_campaign_id"] },
       ],
     },
   );

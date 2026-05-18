@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-11-22 20:33:37
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 13:05:19
+ * @LastEditTime: 2026-05-18 16:24:59
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -25,7 +25,8 @@ export default class ClassifyService extends Base {
     }
     return classify.findAll({
       where,
-      attributes: ['id', 'name', "description", 'icon', 'is_hot'],
+      order: [["sort_order", "DESC"]],
+      attributes: ['id', 'name', "description", 'icon', 'is_hot', 'is_tip', 'disabled'],
       raw: true
     })
   }

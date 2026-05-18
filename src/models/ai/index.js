@@ -13,6 +13,8 @@ export const aiDb = db.use("colpu_ai");
 export const pointLogs = (await import("./point_logs.js")).default(aiDb);
 export const rechargeOrders = (await import("./recharge_orders.js")).default(aiDb);
 export const rechargePackages = (await import("./recharge_packages.js")).default(aiDb);
+export const inviteCampaigns = (await import("./invite_campaigns.js")).default(aiDb);
+export const inviteJoins = (await import("./invite_joins.js")).default(aiDb);
 
 // 记录修复记录
 export const records = (await import("./records.js")).default(aiDb);

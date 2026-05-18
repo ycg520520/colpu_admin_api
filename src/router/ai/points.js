@@ -11,6 +11,8 @@ export default (app) => {
   router.get("/points/recharge-orders", verify, points.rechargeOrders);
 
   router.get("/pay/recharge/packages", pay.packages);
+  router.get("/pay/recharge/invite-summary", pay.inviteSummary);
+  router.get("/pay/recharge/invite-for-order", verify, pay.inviteForOrder);
   router.post("/pay/recharge/create", verify, pay.createRecharge);
   useChildRouter(router);
 };

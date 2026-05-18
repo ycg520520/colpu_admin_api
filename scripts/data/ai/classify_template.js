@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-23 12:49:25
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-23 16:45:47
+ * @LastEditTime: 2026-05-17 15:42:56
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -211,9 +211,9 @@ export default [
   { classify_id: 7, template_id: 176 },
   { classify_id: 7, template_id: 177 },
   { classify_id: 7, template_id: 178 },
-  { classify_id: 7, template_id: 179 },
-  { classify_id: 7, template_id: 180 },
-  { classify_id: 7, template_id: 181 },
+  // { classify_id: 7, template_id: 179 },
+  // { classify_id: 7, template_id: 180 },
+  // { classify_id: 7, template_id: 181 },
   { classify_id: 8, template_id: 113 },
   { classify_id: 8, template_id: 114 },
   { classify_id: 9, template_id: 212 },

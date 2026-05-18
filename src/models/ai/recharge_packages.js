@@ -2,13 +2,12 @@
  * @Author: colpu
  * @Date: 2026-05-15 22:03:28
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-15 23:39:27
+ * @LastEditTime: 2026-05-16 16:05:08
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 /**
  * 微信虚拟支付充值套餐（数据表 recharge_packages）
- * 若表仍为旧列 enabled：`ALTER TABLE recharge_packages CHANGE COLUMN enabled status TINYINT NOT NULL DEFAULT 1 COMMENT '1 上架 0 下架';`
  */
 import { DataTypes } from "sequelize";
 
@@ -35,7 +34,14 @@ export default (sequelize) => {
       point: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 0,
         comment: "支付成功后发放积分",
+      },
+      give_point: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0,
+        comment: "支付成功后附赠积分",
       },
       price: {
         type: DataTypes.INTEGER,
@@ -58,6 +64,18 @@ export default (sequelize) => {
         allowNull: false,
         defaultValue: 1,
         comment: "short_series_coin 时代币购买数量",
+      },
+      invite_refund_invitees: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: "0 关闭；>0 邀请 N 人购买同款并支付成功后，团长虚拟支付原路退款",
+      },
+      tip_type: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: "0 普通文案；1 返现包文案，提示邀请好友助力返现",
       },
       sort_order: {
         type: DataTypes.INTEGER,

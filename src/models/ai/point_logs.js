@@ -32,7 +32,7 @@ export default (sequelize) => {
       biz_type: {
         type: DataTypes.STRING(32),
         allowNull: false,
-        comment: "recharge | consume | refund | grant",
+        comment: "recharge | consume | refund | grant | recharge_revoke",
       },
       title: {
         type: DataTypes.STRING(255),
