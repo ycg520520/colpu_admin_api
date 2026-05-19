@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:59:47
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 17:15:37
+ * @LastEditTime: 2026-05-19 10:32:48
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -71,10 +71,13 @@ export default class Bailian {
   }
 
   getModelData(data) {
-    const { model, prompt, images, parameters = {} } = data;
+    let { model, prompt, images, parameters = {} } = data;
     const url = BAILIAN_MODELS[model] || BAILIAN_MODELS['wan2.6-image'];
     const headers = { ...this.headers };
     let body;
+    if (images.length > 1) {
+      images = [images[0]];
+    }
     switch (model) {
       case 'wan2.6-image':
       case 'wan2.7-image':
@@ -98,7 +101,7 @@ export default class Bailian {
             {
               role: "user",
               content: [
-                { type: 'text', text: prompt || '修复旧照片，去除划痕，减少噪点，增强细节，高分辨率，逼真，自然的肤色，清晰的面部特征，面部磨皮，面部柔和，无失真，老照片修复；为所有人物添加自然肤色，根据服装材质和时代风格进行衣物着色，保持整体色调和谐，根据画面调整风格，2K，高清晰度，高画质，没有任何图像噪声，对人物进行磨皮。' },
+                { type: 'text', text: prompt || `修复旧照片，去除划痕，减少噪点，增强细节，高分辨率，逼真，自然的肤色，清晰的面部特征，面部磨皮，面部柔和，无失真，老照片修复；为所有人物添加自然肤色，根据服装材质和时代风格进行衣物着色，保持整体色调和谐，根据画面调整风格，${size}，保持原有比例，高清晰度，高画质，没有任何图像噪声，对人物进行磨皮。` },
                 ...images.map(image => ({ type: 'image', image }))
               ]
             }
