@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-18 17:23:28
+ * @LastEditTime: 2026-05-19 12:12:36
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -152,7 +152,6 @@ export default {
    */
   wx: {
     ...wechat,
-    redirectUri: 'https://grumpy-items-poke.loca.lt/api/wechat/callback', // 回调地址
     virtualPay
   },
   aikeys,
