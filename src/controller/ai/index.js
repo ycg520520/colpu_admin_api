@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-19 01:03:57
+ * @LastEditTime: 2026-05-19 10:51:29
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -45,6 +45,7 @@ export default class IndexController extends Controller {
             src: "static/ad/image_video.png",
             href: "pages/upload/index?id=15",
             title: "照片转视频",
+            disabled: true
           },
         ]
       },
