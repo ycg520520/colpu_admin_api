@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-16 08:27:50
+ * @LastEditTime: 2026-05-19 01:03:57
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -224,6 +224,7 @@ export default class IndexController extends Controller {
         mode: Joi.string().valid("fast", "quality").optional(),
       },
     });
+
     if (!this.poller?.clients) {
       ctx.throw(500, "AI 环境未初始化（通常因未配置 OSS，Controller 构造阶段已跳过）");
     }
