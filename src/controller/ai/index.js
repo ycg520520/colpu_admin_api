@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-19 10:51:29
+ * @LastEditTime: 2026-05-19 14:28:05
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -24,8 +24,9 @@ export default class IndexController extends Controller {
   }
 
   async getConfig(ctx) {
+    const cdn = this.config.ali.default.domain;
     ctx.respond({
-      cdn: this.config.ali.default.domain,
+      cdn,
       splash: {
         src: "static/flash/flash2.webp",
         href: 'https://www.bailian-ai.com/flash'
@@ -48,6 +49,11 @@ export default class IndexController extends Controller {
             disabled: true
           },
         ]
+      },
+      share: {
+        title: "印点秀秀", // 分享标题
+        path: "/pages/home/index", // 页面 path
+        imageUrl: `${cdn}/static/share.jpg`,
       },
     });
   }
