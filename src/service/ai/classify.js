@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-11-22 20:33:37
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-18 16:24:59
+ * @LastEditTime: 2026-05-19 15:57:19
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -88,6 +88,7 @@ export default class ClassifyService extends Base {
       where: {
         status: true
       },
+      order: [['sort_order', 'DESC']],
       joinTableAttributes: [], // 去掉关联表中的属性
       raw: true
     })

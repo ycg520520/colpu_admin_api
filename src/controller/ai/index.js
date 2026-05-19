@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-19 14:28:05
+ * @LastEditTime: 2026-05-19 15:49:00
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -55,6 +55,7 @@ export default class IndexController extends Controller {
         path: "/pages/home/index", // 页面 path
         imageUrl: `${cdn}/static/share.jpg`,
       },
+      point: 15, // 每次生成消耗积分，前端可据此提示用户
     });
   }
 
