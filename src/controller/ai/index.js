@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-21 15:07:05
+ * @LastEditTime: 2026-05-21 19:41:46
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -20,7 +20,7 @@ import { GoogleGenAI } from "@google/genai";
  */
 const AD_CONFIG = {
   splash: {
-    enabled: true,
+    enabled: false,
     unitId: "",
     src: "static/flash/flash2.webp",
     href: "https://www.bailian-ai.com/flash",
