@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-19 15:49:00
+ * @LastEditTime: 2026-05-21 15:07:05
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -13,6 +13,45 @@ import TaskPoller from '../../ai/task-poller.js';
 import aiGenerate from "../../ai/index.js";
 import { progressStatus } from "../../ai/utils.js";
 import { GoogleGenAI } from "@google/genai";
+
+/**
+ * 广告配置（非敏感信息，unitId 在 mp.weixin.qq.com 流量主后台创建）
+ * 后续可改为从 DB / 配置中心读取
+ */
+const AD_CONFIG = {
+  splash: {
+    enabled: true,
+    unitId: "",
+    src: "static/flash/flash2.webp",
+    href: "https://www.bailian-ai.com/flash",
+  },
+  splash_countdown: 5,
+  // banner: {
+  //   unitId: "",
+  //   adIntervals: 30,
+  //   src: "static/ad/banner.png",
+  //   href: "pages/upload/index?id=18",
+  //   title: "精选推荐",
+  // },
+  custom: [
+    { unitId: "", adIntervals: 30 },
+    { unitId: "", adIntervals: 30 },
+  ],
+  list: [
+    {
+      src: "static/ad/colorize.png",
+      href: "pages/upload/index?id=18",
+      title: "黑白上色",
+    },
+    {
+      src: "static/ad/image_video.png",
+      href: "pages/upload/index?id=15",
+      title: "照片转视频",
+      disabled: true,
+    },
+  ],
+};
+
 export default class IndexController extends Controller {
   constructor(ctx) {
     super(ctx);
@@ -25,31 +64,10 @@ export default class IndexController extends Controller {
 
   async getConfig(ctx) {
     const cdn = this.config.ali.default.domain;
+    const custom = (AD_CONFIG.custom || []).filter((item) => item?.unitId);
     ctx.respond({
       cdn,
-      splash: {
-        src: "static/flash/flash2.webp",
-        href: 'https://www.bailian-ai.com/flash'
-      },
-      ad: {
-        banner: {
-          src: "static/ad/banner.png",
-          href: ''
-        },
-        list: [
-          {
-            src: "static/ad/colorize.png",
-            href: "pages/upload/index?id=18",
-            title: "黑白上色",
-          },
-          {
-            src: "static/ad/image_video.png",
-            href: "pages/upload/index?id=15",
-            title: "照片转视频",
-            disabled: true
-          },
-        ]
-      },
+      ad: { ...AD_CONFIG, custom },
       share: {
         title: "印点秀秀", // 分享标题
         path: "/pages/home/index", // 页面 path
