@@ -14,44 +14,6 @@ import aiGenerate from "../../ai/index.js";
 import { progressStatus } from "../../ai/utils.js";
 import { GoogleGenAI } from "@google/genai";
 
-/**
- * 广告配置（非敏感信息，unitId 在 mp.weixin.qq.com 流量主后台创建）
- * 后续可改为从 DB / 配置中心读取
- */
-const AD_CONFIG = {
-  splash: {
-    enabled: false,
-    unitId: "",
-    src: "static/flash/flash2.webp",
-    href: "https://www.bailian-ai.com/flash",
-  },
-  splash_countdown: 5,
-  // banner: {
-  //   unitId: "",
-  //   adIntervals: 30,
-  //   src: "static/ad/banner.png",
-  //   href: "pages/upload/index?id=18",
-  //   title: "精选推荐",
-  // },
-  custom: [
-    { unitId: "", adIntervals: 30 },
-    { unitId: "", adIntervals: 30 },
-  ],
-  list: [
-    {
-      src: "static/ad/colorize.png",
-      href: "pages/upload/index?id=18",
-      title: "黑白上色",
-    },
-    {
-      src: "static/ad/image_video.png",
-      href: "pages/upload/index?id=15",
-      title: "照片转视频",
-      disabled: true,
-    },
-  ],
-};
-
 export default class IndexController extends Controller {
   constructor(ctx) {
     super(ctx);
@@ -64,16 +26,17 @@ export default class IndexController extends Controller {
 
   async getConfig(ctx) {
     const cdn = this.config.ali.default.domain;
-    const custom = (AD_CONFIG.custom || []).filter((item) => item?.unitId);
+    const ad = await this.service.ai.ads.buildClientAdConfig();
+    const point = await this.service.ai.ads.getDefaultPoint();
     ctx.respond({
       cdn,
-      ad: { ...AD_CONFIG, custom },
+      ad,
       share: {
-        title: "印点秀秀", // 分享标题
-        path: "/pages/home/index", // 页面 path
+        title: "印点秀秀",
+        path: "/pages/home/index",
         imageUrl: `${cdn}/static/share.jpg`,
       },
-      point: 15, // 每次生成消耗积分，前端可据此提示用户
+      point,
     });
   }
 

@@ -14,7 +14,7 @@ export default class ClassifyService extends Base {
   all(params) {
     const { name } = params;
     const where = {
-      status: true,
+      status: 1,
     };
     const orArr = []
     if (name) {

@@ -23,6 +23,8 @@ export const template = (await import("./template.js")).default(aiDb);
 export const classify = (await import("./classify.js")).default(aiDb);
 export const classifyTemplate = (await import("./classify_template.js")).default(aiDb);
 export const classifyExtend = (await import("./classify_extend.js")).default(aiDb);
+export const adSlots = (await import("./ad_slots.js")).default(aiDb);
+export const appSettings = (await import("./app_settings.js")).default(aiDb);
 // 分类模板关联关系
 classify.belongsToMany(template, {
   through: classifyTemplate,

@@ -51,7 +51,12 @@ export default (sequelize) => {
         type: DataTypes.STRING(20),
         allowNull: false,
         defaultValue: "pending",
-        comment: "订单状态：pending 待支付 | success 已支付并已发货 | closed 已关闭",
+        comment: "订单状态：pending | success | closed | refunded",
+      },
+      meta: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        comment: "扩展信息（运营退款审计等）",
       },
       transaction_id: {
         type: DataTypes.STRING(64),

@@ -24,17 +24,21 @@ export default class UserController extends Controller {
    */
   async getUserInfo(ctx) {
     const { uid } = ctx.state.user;
-    const userInfo = await this.service.users.findUser({
+    const userRow = await this.service.users.findUser({
       uid,
     });
-    if (!userInfo) {
+    if (!userRow) {
       ctx.throw(401, '用户不存在');
       return;
     }
-    const { roles, permissions } = await this.service.users.findUserRoleAndPermission(userInfo.id)
-    userInfo.roles = roles;
-    userInfo.permissions = permissions;
-    ctx.respond(userInfo);
+    const { roles, permissions } = await this.service.users.findUserRoleAndPermission(userRow.id);
+    // 须转 plain 对象再挂 permissions，避免与 User.permissions 关联字段冲突
+    const userInfo = userRow.get ? userRow.get({ plain: true }) : userRow;
+    ctx.respond({
+      ...userInfo,
+      roles,
+      permissions,
+    });
   }
 
   /**

@@ -10,7 +10,7 @@ const TS = {
 };
 
 export default {
-  name: "colpu_ai_schema",
+  name: "schema",
   async up({ context }) {
     await context.createTable("classify", {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false },

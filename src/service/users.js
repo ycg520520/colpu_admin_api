@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2024-06-20 14:49:51
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 09:56:36
+ * @LastEditTime: 2026-05-22 08:42:28
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -48,7 +48,6 @@ export default class UserService extends Base {
           "points",
         ],
       where,
-      raw: true,
     });
   }
 

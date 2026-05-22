@@ -76,9 +76,10 @@ export default class MenusService extends Base {
         [Op.in]: menuIds
       };
     }
-    // 查询出所有菜单列表
+    // 查询出所有菜单列表（按 sort_order 保证侧栏顺序）
     return menus.findAll({
-      where
+      where,
+      order: [["sort_order", "ASC"], ["id", "ASC"]],
     }).then((res) => {
       return res.map((item) => {
         return item.formatRoutes();
