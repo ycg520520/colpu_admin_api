@@ -19,7 +19,7 @@ export default (sequelize) => {
     type: {
       type: DataTypes.TINYINT,
       allowNull: false,
-      comment: "用户三方登录类型，\n1：微信登录，\n2：QQ登录",
+      comment: "用户三方登录类型：1微信 2QQ 3微博 4支付宝 5淘宝（与 oauthLogin.thirdType 一致）",
     },
     openid: {
       type: DataTypes.STRING(255),

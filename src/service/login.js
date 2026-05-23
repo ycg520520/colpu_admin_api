@@ -1,5 +1,5 @@
 /**
- * 后台登录：短信验证码、三方 OAuth（微信/支付宝/淘宝/微博）
+ * 后台登录：短信验证码、三方 OAuth（微信/QQ/支付宝/淘宝/微博）
  */
 import crypto from "crypto";
 import QRCode from "qrcode";
@@ -7,14 +7,16 @@ import WechatOAuth from "../utils/wechat/auth.js";
 import { thirdAuth } from "../models/sys/index.js";
 import Base from "./base.js";
 
-const WECHAT_TYPE = 1;
 const SMS_TTL_MS = 5 * 60 * 1000;
 const SMS_RATE_MS = 60 * 1000;
 const OAUTH_SCENE_TTL_MS = 5 * 60 * 1000;
 const OAUTH_LOGIN_KEY = "OAUTH_LOGIN";
 
+const OAUTH_REDIRECT_PROVIDERS = ["qq", "alipay", "taobao", "weibo"];
+
 const PROVIDER_NAMES = {
   wechat: "微信",
+  qq: "QQ",
   alipay: "支付宝",
   taobao: "淘宝",
   weibo: "微博",
@@ -103,7 +105,8 @@ export default class LoginService extends Base {
   }
 
   _wechatOAuth(ctx) {
-    const { appId, appSecret } = this.config.wx || {};
+    const cfg = this._getProviderConfig("wechat");
+    const { appId, appSecret } = cfg || {};
     const redirectUri = this._buildRedirectUri("wechat");
     const redis = ctx.app.redis.use(0);
     return new WechatOAuth({
@@ -126,6 +129,14 @@ export default class LoginService extends Base {
   }
 
   async createWechatQrcode(ctx) {
+    const cfg = this._getProviderConfig("wechat");
+    if (!cfg?.configured) {
+      const err = new Error(
+        "微信登录未配置，请在 .config.js 的 oauthLogin.wechat 填写开放平台网站应用 appId/appSecret",
+      );
+      err.status = 503;
+      throw err;
+    }
     const state = crypto.randomBytes(16).toString("hex");
     await this._initOAuthScene(ctx, state, "wechat");
     const oauth = this._wechatOAuth(ctx);
@@ -135,20 +146,11 @@ export default class LoginService extends Base {
   }
 
   _getProviderConfig(provider) {
-    if (provider === "wechat") {
-      const { appId, appSecret } = this.config.wx || {};
-      return {
-        thirdType: WECHAT_TYPE,
-        appId,
-        appSecret,
-        configured: !!(appId && appSecret),
-      };
-    }
     const cfg = this.config.oauthLogin?.[provider];
     if (!cfg) return null;
     return {
       ...cfg,
-      configured: !!(cfg.appId && cfg.appSecret),
+      configured: !!(cfg.appId && cfg.appSecret && cfg.thirdType != null),
     };
   }
 
@@ -166,7 +168,7 @@ export default class LoginService extends Base {
       throw err;
     }
     const redirectUri = encodeURIComponent(this._buildRedirectUri(provider));
-    if (provider === "weibo") {
+    if (provider === "weibo" || provider === "qq") {
       return `${cfg.authorizeUrl}?client_id=${cfg.appId}&redirect_uri=${redirectUri}&response_type=code&state=${state}`;
     }
     if (provider === "alipay") {
@@ -193,12 +195,25 @@ export default class LoginService extends Base {
     if (provider === "wechat") {
       return this.createWechatQrcode(ctx);
     }
-    if (["alipay", "taobao", "weibo"].includes(provider)) {
+    if (OAUTH_REDIRECT_PROVIDERS.includes(provider)) {
       return this.createOAuthRedirect(ctx, provider);
     }
     const err = new Error("不支持的登录方式");
     err.status = 400;
     throw err;
+  }
+
+  _parseQqResponse(text) {
+    const trimmed = String(text || "").trim();
+    if (trimmed.startsWith("callback(")) {
+      return JSON.parse(trimmed.slice(9, trimmed.lastIndexOf(")")));
+    }
+    const data = {};
+    for (const part of trimmed.split("&")) {
+      const [k, v] = part.split("=");
+      if (k) data[decodeURIComponent(k)] = decodeURIComponent(v || "");
+    }
+    return data;
   }
 
   async _exchangeOAuthCode(provider, code) {
@@ -229,6 +244,42 @@ export default class LoginService extends Base {
       return { openid, unionid: data.unionid || null };
     }
 
+    if (provider === "qq") {
+      const tokenQuery = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: cfg.appId,
+        client_secret: cfg.appSecret,
+        code,
+        redirect_uri: redirectUri,
+        fmt: "json",
+      });
+      const tokenRes = await fetch(`${cfg.tokenUrl}?${tokenQuery.toString()}`);
+      const tokenData = this._parseQqResponse(await tokenRes.text());
+      if (tokenData.error || tokenData.code) {
+        throw new Error(
+          tokenData.error_description || tokenData.msg || "QQ 授权失败",
+        );
+      }
+      const accessToken = tokenData.access_token;
+      if (!accessToken) {
+        throw new Error("QQ 未返回 access_token");
+      }
+      const openidRes = await fetch(
+        `${cfg.openidUrl || "https://graph.qq.com/oauth2.0/me"}?${new URLSearchParams({
+          access_token: accessToken,
+          fmt: "json",
+        }).toString()}`,
+      );
+      const openidData = this._parseQqResponse(await openidRes.text());
+      if (openidData.error || openidData.code) {
+        throw new Error(
+          openidData.error_description || openidData.msg || "QQ 获取 openid 失败",
+        );
+      }
+      const openid = String(openidData[cfg.openidField || "openid"] || "");
+      return { openid, unionid: null };
+    }
+
     if (provider === "alipay" || provider === "taobao") {
       const err = new Error(
         `${PROVIDER_NAMES[provider]} token 交换需在 oauthLogin 中对接开放平台 SDK，当前请先使用账号或微信登录`,
@@ -242,7 +293,14 @@ export default class LoginService extends Base {
 
   async _loginByOpenid(ctx, state, provider, openid, generateToken) {
     const cfg = this._getProviderConfig(provider);
-    const thirdType = cfg?.thirdType ?? WECHAT_TYPE;
+    const thirdType = cfg?.thirdType;
+    if (thirdType == null) {
+      await this._setOAuthScene(ctx, state, {
+        status: "error",
+        message: "三方登录类型未配置",
+      });
+      return { ok: false, message: "三方登录类型未配置" };
+    }
     const ta = await thirdAuth.findOne({
       where: { openid, type: thirdType, isbind: 1 },
     });

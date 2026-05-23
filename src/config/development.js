@@ -7,7 +7,5 @@
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 export default {
-  wx: {
-    redirectUri: "http://localhost:8610/api/oauth/wechat/callback",
-  },
+  // 本地 OAuth 回调由 domain + /api/oauth/wechat/callback 自动拼接
 };

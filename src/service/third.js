@@ -7,26 +7,11 @@
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 import { Op, col } from "sequelize";
+import { THIRD_AUTH_TYPE, THIRD_AUTH_TYPE_NAME } from "../constants/third_auth.js";
 import Base from "./base.js";
 import cryptoUtils from "../utils/crypto.js";
 import { sysDb, thirdAuth, users } from "../models/sys/index.js";
-const nicknameMap = {
-  0: "未知",
-  1: "微信",
-  2: "QQ",
-  // github: "GitHub",
-  // weibo: "微博",
-  // twitter: "Twitter",
-  // facebook: "Facebook",
-  // linkedin: "LinkedIn",
-  // google: "Google",
-  // apple: "Apple",
-  // dingding: "钉钉",
-  // lark: "飞书",
-  // wechatwork: "企业微信",
-  // alipay: "支付宝",
-
-}
+const nicknameMap = THIRD_AUTH_TYPE_NAME;
 export default class ThirdAuthService extends Base {
 
   async create(params) {

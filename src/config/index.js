@@ -2,11 +2,11 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-21 08:45:49
+ * @LastEditTime: 2026-05-23 15:53:31
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption, virtualPay } from "../../.config.js";
+import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption, virtualPay, oauthLogin } from "../../.config.js";
 export default {
   port: 8610,
   domain: "http://localhost:8610",
@@ -147,8 +147,8 @@ export default {
     },
   },
   /**
-   * 微信：OAuth、消息推送、虚拟支付（米大师）。
-   * `virtualPay` 来自 `.config.js`（offerId、appKey / appKeySandbox、mode、env）；充值套餐表 colpu_ai.recharge_packages。
+   * 微信：小程序、消息推送、虚拟支付（米大师）。
+   * 后台 Web 扫码登录使用 oauthLogin.wechat（开放平台网站应用）。
    */
   wx: {
     ...wechat,
@@ -161,31 +161,5 @@ export default {
   /** 三方首次注册赠送积分；<=0 关闭 */
   givePoint: 100,
   /** 后台三方登录（appId 为空则接口返回未配置） */
-  oauthLogin: {
-    weibo: {
-      thirdType: 3,
-      appId: "",
-      appSecret: "",
-      authorizeUrl: "https://api.weibo.com/oauth2/authorize",
-      tokenUrl: "https://api.weibo.com/oauth2/access_token",
-      openidField: "uid",
-    },
-    alipay: {
-      thirdType: 4,
-      appId: "",
-      appSecret: "",
-      authorizeUrl: "https://openauth.alipay.com/oauth2/publicAppAuthorize.htm",
-      tokenUrl: "https://openapi.alipay.com/gateway.do",
-      scope: "auth_user",
-      openidField: "user_id",
-    },
-    taobao: {
-      thirdType: 5,
-      appId: "",
-      appSecret: "",
-      authorizeUrl: "https://oauth.taobao.com/authorize",
-      tokenUrl: "https://oauth.taobao.com/token",
-      openidField: "taobao_user_id",
-    },
-  },
+  oauthLogin,
 };

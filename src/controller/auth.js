@@ -11,6 +11,7 @@ import { Controller } from "@colpu/core";
 import jwt from "jsonwebtoken";
 import cryptoUtil from "../utils/crypto.js";
 import WechatOAuth from '../utils/wechat/auth.js';
+import { THIRD_AUTH_TYPE } from "../constants/third_auth.js";
 const refreshTokenAddMaxAge = 1728e5; // 48小时，单位毫秒
 // const refreshTokenAddMaxAge = 10e3; // 10秒钟，测试用
 export default class AuthController extends Controller {
@@ -265,7 +266,7 @@ export default class AuthController extends Controller {
     const { provider } = ctx.validate({
       params: {
         provider: Joi.string()
-          .valid("wechat", "alipay", "taobao", "weibo")
+          .valid("wechat", "qq", "alipay", "taobao", "weibo")
           .required(),
       },
     });
@@ -336,7 +337,7 @@ export default class AuthController extends Controller {
     const { provider } = ctx.validate({
       params: {
         provider: Joi.string()
-          .valid("wechat", "alipay", "taobao", "weibo")
+          .valid("wechat", "qq", "alipay", "taobao", "weibo")
           .required(),
       },
     });
@@ -517,7 +518,7 @@ export default class AuthController extends Controller {
     const userInfo = await this.service.third.create({
       openid,
       unionid,
-      type: 1,
+      type: THIRD_AUTH_TYPE.WECHAT,
     });
     const tokens = this._generateToken(userInfo, client, scope);
     return tokens;
