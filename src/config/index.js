@@ -160,4 +160,32 @@ export default {
   default_user_prfix: "@AU@_",
   /** 三方首次注册赠送积分；<=0 关闭 */
   givePoint: 100,
+  /** 后台三方登录（appId 为空则接口返回未配置） */
+  oauthLogin: {
+    weibo: {
+      thirdType: 3,
+      appId: "",
+      appSecret: "",
+      authorizeUrl: "https://api.weibo.com/oauth2/authorize",
+      tokenUrl: "https://api.weibo.com/oauth2/access_token",
+      openidField: "uid",
+    },
+    alipay: {
+      thirdType: 4,
+      appId: "",
+      appSecret: "",
+      authorizeUrl: "https://openauth.alipay.com/oauth2/publicAppAuthorize.htm",
+      tokenUrl: "https://openapi.alipay.com/gateway.do",
+      scope: "auth_user",
+      openidField: "user_id",
+    },
+    taobao: {
+      thirdType: 5,
+      appId: "",
+      appSecret: "",
+      authorizeUrl: "https://oauth.taobao.com/authorize",
+      tokenUrl: "https://oauth.taobao.com/token",
+      openidField: "taobao_user_id",
+    },
+  },
 };

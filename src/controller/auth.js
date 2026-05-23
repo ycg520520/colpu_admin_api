@@ -14,33 +14,46 @@ import WechatOAuth from '../utils/wechat/auth.js';
 const refreshTokenAddMaxAge = 1728e5; // 48小时，单位毫秒
 // const refreshTokenAddMaxAge = 10e3; // 10秒钟，测试用
 export default class AuthController extends Controller {
-  /**·
+  /**
    * @api {post} /token
    * @apiName token
-   * @apiDescription 生成token
+   * @apiDescription 获取访问令牌（OAuth2 兼容）。后台登录常用 grant_type：password（账号密码）、sms（手机验证码）。
    * @apiGroup Auth
    * @apiVersion  1.0.0
    *
-   * @apiBody {String} grant_type 授权类型 [code, password, credentials, refresh_token, applet]
-   * @apiBody {String} [client_id] 客服端ID (可选)
-   * @apiBody {String} [code] 授权码code模式，需要传递code (可选)
-   * @apiBody {String} [scope] 授权范围，多个用;分隔 (可选)
-   * @apiBody {String} [secret] 客户端密钥，使用client_id和secret进行严格认证，密钥需要安全存储，不能暴露给前端
-   * @apiBody {String} [username] 用户名 (可选)
-   * @apiBody {String} [password] 密码 (可选)
-   * @apiBody {String} [redirect_uri] 重定向URI (可选)
-   * @apiBody {String} [refresh_token] 刷新令牌 (可选)
+   * @apiBody {String} grant_type 授权类型 [code, password, credentials, refresh_token, applet, sms]
+   * @apiBody {String} [client_id] 客户端 ID（可选，也可通过 Header `x-client-id` 传递）
+   * @apiBody {String} [scope] 授权范围，多个用 ; 分隔（可选）
+   * @apiBody {String} [username] 用户名（password 模式必填）
+   * @apiBody {String} [password] 密码（password 模式必填）
+   * @apiBody {String} [mobile] 手机号，11 位（sms 模式必填，需先 POST /sms/send）
+   * @apiBody {String} [code] 短信验证码 4 位（sms 模式必填）；或授权码（code 模式必填）
+   * @apiBody {String} [secret] 客户端密钥（credentials 模式必填）
+   * @apiBody {String} [refresh_token] 刷新令牌（refresh_token 模式必填）
+   * @apiBody {String} [redirect_uri] 重定向 URI（可选）
    *
-   * @apiSuccessExample {json} Success-Response:
+   * @apiSuccessExample {json} 账号密码登录:
    * HTTP/1.1 200 OK
    * {
-   *   "token_type": "Bearer", // 返回token类型
-   *   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // 返回token
-   *   "expires_in": 3600, // 剩余有效秒数（OAuth2 标准）
-   *   "refresh_token": "def50200e5b0...", // 返回刷新令牌
-   *   "client_id": "client_id", // 返回客户端ID
-   *   "scope": ["scope"] // 返回权限范围
+   *   "token_type": "Bearer",
+   *   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+   *   "expires_in": 3600,
+   *   "refresh_token": "def50200e5b0...",
+   *   "client_id": "client_id",
+   *   "scope": ["scope"]
    * }
+   *
+   * @apiSuccessExample {json} 手机验证码登录 (grant_type=sms):
+   * POST /token
+   * { "grant_type": "sms", "mobile": "13800138000", "code": "1234" }
+   *
+   * @apiErrorExample {json} 账号密码错误:
+   * HTTP/1.1 401 Unauthorized
+   * { "message": "Invalid username or password" }
+   * @apiErrorExample {json} 验证码错误或手机号未绑定:
+   * HTTP/1.1 401 Unauthorized
+   * { "message": "验证码错误或已过期" }
+   * { "message": "该手机号未绑定后台账号" }
    */
 
   async token(ctx) {
@@ -71,6 +84,9 @@ export default class AuthController extends Controller {
         break;
       case "applet":
         tokens = await this._appletToken(ctx, client);
+        break;
+      case "sms":
+        tokens = await this._smsToken(ctx, client);
         break;
       default:
         ctx.throw(401, "没有参数: grant_type");
@@ -176,10 +192,198 @@ export default class AuthController extends Controller {
   }
 
 
+  /**
+   * @api {post} /login
+   * @apiName login
+   * @apiDescription 已登录用户会话校验（需携带 access_token）
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer access_token
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * "ok login"
+   */
   async login(ctx) {
-    ctx.respond('ok login');
+    ctx.respond("ok login");
   }
 
+  /**
+   * @api {post} /sms/send
+   * @apiName sendSms
+   * @apiDescription 发送手机登录验证码。同一手机号 60 秒内限发一次，验证码 5 分钟有效。
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiBody {String} mobile 手机号，11 位，1 开头
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "mobile": "13800138000",
+   *   "expires_in": 300
+   * }
+   * @apiErrorExample {json} Error-Response:
+   * HTTP/1.1 429 Too Many Requests
+   * { "message": "发送过于频繁，请稍后再试" }
+   */
+  async sendSms(ctx) {
+    const { mobile } = ctx.validate({
+      body: {
+        mobile: Joi.string()
+          .pattern(/^1\d{10}$/)
+          .required(),
+      },
+    });
+    const data = await this.service.login.sendSmsCode(ctx, mobile);
+    ctx.respond(data, null, "验证码已发送");
+  }
+
+  /**
+   * @api {get} /oauth/:provider/start
+   * @apiName oauthStart
+   * @apiDescription 发起三方登录。微信返回二维码数据；支付宝/淘宝/微博返回授权跳转链接。
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiParam {String} provider 登录渠道 [wechat, alipay, taobao, weibo]
+   * @apiSuccessExample {json} 微信 Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "provider": "wechat",
+   *   "state": "a1b2c3...",
+   *   "auth_url": "https://open.weixin.qq.com/connect/qrconnect?...",
+   *   "qr_image": "data:image/png;base64,...",
+   *   "expires_in": 300
+   * }
+   * @apiSuccessExample {json} 其他三方 Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "provider": "weibo",
+   *   "state": "a1b2c3...",
+   *   "auth_url": "https://api.weibo.com/oauth2/authorize?...",
+   *   "expires_in": 300
+   * }
+   */
+  async oauthStart(ctx) {
+    const { provider } = ctx.validate({
+      params: {
+        provider: Joi.string()
+          .valid("wechat", "alipay", "taobao", "weibo")
+          .required(),
+      },
+    });
+    const data = await this.service.login.startOAuth(ctx, provider);
+    ctx.respond(data);
+  }
+
+  /**
+   * @api {get} /oauth/poll
+   * @apiName oauthPoll
+   * @apiDescription 轮询三方登录状态（前端每 2 秒请求一次，state 来自 /oauth/:provider/start）
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiQuery {String} state 登录场景标识
+   * @apiSuccessExample {json} 等待中:
+   * HTTP/1.1 200 OK
+   * { "status": "pending", "provider": "wechat" }
+   * @apiSuccessExample {json} 登录成功:
+   * HTTP/1.1 200 OK
+   * {
+   *   "status": "ok",
+   *   "tokens": {
+   *     "token_type": "Bearer",
+   *     "access_token": "...",
+   *     "expires_in": 3600,
+   *     "refresh_token": "..."
+   *   }
+   * }
+   * @apiSuccessExample {json} 失败或过期:
+   * HTTP/1.1 200 OK
+   * { "status": "error", "message": "三方账号未绑定" }
+   * { "status": "expired" }
+   */
+  async oauthPoll(ctx) {
+    const { state } = ctx.validate({
+      query: { state: Joi.string().required() },
+    });
+    const data = await this.service.login.pollOAuth(ctx, state);
+    ctx.respond(data);
+  }
+
+  _oauthCallbackHtml(ctx, result, provider) {
+    const title = result.ok ? "登录成功" : "登录失败";
+    const msg = result.message || "";
+    ctx.type = "text/html; charset=utf-8";
+    ctx.body = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title></head>
+<body style="font-family:sans-serif;text-align:center;padding:48px;">
+<h2>${title}</h2><p>${msg}</p>
+<p style="color:#888;font-size:14px;">请关闭此窗口并返回管理后台</p>
+<script>if(window.opener){try{window.opener.postMessage({type:'oauth-login',provider:'${provider}',ok:${result.ok}},'*');}catch(e){}}</script>
+</body></html>`;
+  }
+
+  /**
+   * @api {get} /oauth/:provider/callback
+   * @apiName oauthCallback
+   * @apiDescription 三方 OAuth 授权回调（由开放平台浏览器跳转，非前端直接调用）。成功后写入 Redis 供 /oauth/poll 读取，并返回 HTML 提示页。
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiParam {String} provider 登录渠道 [wechat, alipay, taobao, weibo]
+   * @apiQuery {String} code 授权码
+   * @apiQuery {String} state 与 /oauth/:provider/start 返回的 state 一致
+   * @apiSuccessExample {html} Success-Response:
+   * HTTP/1.1 200 OK
+   * 登录成功 / 登录失败 提示页（含 postMessage 通知 opener）
+   */
+  async oauthCallback(ctx) {
+    const { provider } = ctx.validate({
+      params: {
+        provider: Joi.string()
+          .valid("wechat", "alipay", "taobao", "weibo")
+          .required(),
+      },
+    });
+    const { code, state } = ctx.validate({
+      query: {
+        code: Joi.string().required(),
+        state: Joi.string().required(),
+      },
+    });
+    const result = await this.service.login.handleOAuthCallback(
+      ctx,
+      provider,
+      code,
+      state,
+      (user, client, scope) => this._generateToken(user, client, scope),
+    );
+    this._oauthCallbackHtml(ctx, result, provider);
+  }
+
+  // grant_type=sms：校验短信验证码并签发 token（见 POST /token 文档）
+  async _smsToken(ctx, client) {
+    const { mobile, code } = ctx.validate({
+      body: {
+        mobile: Joi.string()
+          .pattern(/^1\d{10}$/)
+          .required(),
+        code: Joi.string().length(4).required(),
+      },
+    });
+    const user = await this.service.login.verifySmsCode(ctx, mobile, code);
+    const tokens = this._generateToken(user, client);
+    user.tokens = tokens;
+    ctx.session.user = user;
+    return tokens;
+  }
+
+  /**
+   * @api {post} /logout
+   * @apiName logout
+   * @apiDescription 退出登录，清除服务端 session
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer access_token
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * "logout success"
+   */
   async logout(ctx) {
     ctx.state.user = null;
     ctx.session.user = null; // 清除session
@@ -187,10 +391,16 @@ export default class AuthController extends Controller {
   }
 
   /**
-   * @function verify 验证token
-   * @apiParam {String} client_id 客服端ID
-   * @headers {String} Authorization 授权获取的access_token
-   * @returns
+   * @api {get} /verify
+   * @apiName verify
+   * @apiDescription 验证 access_token 是否有效
+   * @apiGroup Auth
+   * @apiVersion 1.0.0
+   * @apiHeader {String} Authorization Bearer access_token
+   * @apiQuery {String} [client_id] 客户端 ID（可选）
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * { "valid": true, "uid": "user_uid" }
    */
   async verify(ctx) {
     const tokens = await this._verifyToken(ctx);

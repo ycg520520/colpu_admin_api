@@ -8,6 +8,6 @@
  */
 export default {
   wx: {
-    redirectUri: 'https://grumpy-items-poke.loca.lt/api/wechat/callback', // 回调地址
+    redirectUri: "http://localhost:8610/api/oauth/wechat/callback",
   },
 };

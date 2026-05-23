@@ -15,6 +15,11 @@ export default (app) => {
   router.get("/auth", auth.authorize);
   router.get("/token", auth.token);
   router.post("/token", auth.token);
+  /** 登录：短信验证码 / 三方 OAuth / 会话 */
+  router.post("/sms/send", auth.sendSms);
+  router.get("/oauth/:provider/start", auth.oauthStart);
+  router.get("/oauth/poll", auth.oauthPoll);
+  router.get("/oauth/:provider/callback", auth.oauthCallback);
   router.post("/login", verify, auth.login);
   router.post("/logout", verify, auth.logout);
 };
