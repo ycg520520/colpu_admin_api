@@ -108,7 +108,7 @@ export default [
   },
   {
     id: 16,
-    parent_id: 10,
+    // parent_id: 10,
     name: "女士证件类型",
     type: 1,
   },
@@ -126,7 +126,7 @@ export default [
   },
   {
     id: 19,
-    parent_id: 11,
+    // parent_id: 11,
     name: "男士证件类型",
     type: 1,
   },
@@ -233,5 +233,19 @@ export default [
     name: "男式发型",
     type: 1,
     remark: "男性发型",
+  },
+  {
+    id: 37,
+    parent_id: 10,
+    name: "女式衣服",
+    type: 1,
+    remark: "女式衣服",
+  },
+  {
+    id: 38,
+    parent_id: 11,
+    name: "男式衣服",
+    type: 1,
+    remark: "男式衣服",
   },
 ];
