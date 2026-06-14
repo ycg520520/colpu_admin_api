@@ -2,11 +2,11 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-23 15:53:31
+ * @LastEditTime: 2026-06-05 15:02:58
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
-import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption, virtualPay, oauthLogin } from "../../.config.js";
+import { wechat, mysql, mysqlClients, redis, redisClients, aliOSS, aliScan, aikeys, comfyOption, liblibOption, runninghubOption, virtualPay, oauthLogin } from "../../.config.js";
 export default {
   port: 8610,
   domain: "http://localhost:8610",
@@ -156,6 +156,14 @@ export default {
   },
   aikeys,
   comfyOption,
+  liblibOption: {
+    ...liblibOption
+  },
+  runninghubOption: {
+    // webhookUrl: "https://api-indian.nadu8.com/api/ai/runninghub/webhook",
+    webhookUrl: "https://f639-118-116-81-231.ngrok-free.app/api/ai/runninghub/webhook",
+    ...runninghubOption,
+  },
   updateTaskUrl: `http://127.0.0.1:8610/api/ai/task`,
   default_user_prfix: "@AU@_",
   /** 三方首次注册赠送积分；<=0 关闭 */

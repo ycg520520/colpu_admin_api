@@ -6,18 +6,19 @@ import { ComfyApi } from "@saintno/comfyui-sdk";
 import { readFileSync, existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import AliOSS from "../alioss.js";
-import textToImage from "./textToImage.js";
-import imageRepair from "./imageRepair.js";
+import textToImageParams from "./workflows/textToImageParams.js";
 
-export const WORKFLOWS = new Set(["text_to_image", "image_repair"]);
+export const WORKFLOWS = new Set(["text_to_image", "image_repair", "id_photo"]);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default class ComfyUI {
   constructor(option) {
     if (!option?.baseUrl) throw new Error("ComfyUI baseUrl is required");
-    if (!option?.ossOption) throw new Error("ComfyUI ossOption is required");
+    const ossClient = option.ossClient;
+    if (!ossClient) {
+      throw new Error('缺少ossClient实例，请确保在createClients时正确传入ossOption参数');
+    }
     this.baseUrl = String(option.baseUrl).replace(/\/$/, "");
-    this.ossClient = new AliOSS(option.ossOption);
+    this.ossClient = ossClient;
     /** 用于把 `template.img_src` 相对路径拼成 Comfy 可下载的绝对 URL（一般为 OSS/CDN 根） */
     this.assetsBaseUrl = String(option.assetsBaseUrl ?? option.publicAssetsBase ?? "").replace(/\/$/, "");
     this._credentials = option.credentials;
@@ -194,9 +195,7 @@ export default class ComfyUI {
     const schema = this.loadWorkflow(workflow);
     switch (workflow) {
       case "text_to_image":
-        return await textToImage(schema, options, this);
-      case "image_repair":
-        return await imageRepair(schema, options, this);
+        return await textToImageParams(schema, options, this);
       default:
         throw new Error(`Unsupported workflow: ${workflow}`);
     }

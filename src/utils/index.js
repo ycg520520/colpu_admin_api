@@ -204,7 +204,7 @@ export function installTree(data = [], options = {}) {
   let result = [];
   for (let i in dict) {
     const item = dict[i];
-    if ((item[key_fid] === id && id == 0) || item[key_id] === id) {
+    if (((item[key_fid] === id || item[key_fid] === null) && id == 0) || item[key_id] === id) {
       filterItem.push(item);
       result.push(item);
     }

@@ -7,6 +7,8 @@ import {
   firstImage,
   progressStatus,
 } from "./utils.js";
+import liblibHandle from "./liblib/handle.js";
+import runningHubHandle from "./runninghub/handle.js";
 /**
  * @param {object} clients
  * @param {object} data
@@ -19,6 +21,12 @@ import {
 export default async function generate(clients, data) {
   const { classify } = data;
   const model = String(classify.model).trim();
+  if (model.startsWith("runninghub")) {
+    return await runningHubHandle(clients.runninghub, data, returnResult);
+  }
+  if (model.startsWith("liblib")) {
+    return await liblibHandle(clients.liblib, data, returnResult);
+  }
   if (model.startsWith("comfyui")) {
     return await comfyUIHandle(clients.comfyui, data);
   }
@@ -154,6 +162,6 @@ async function comfyUIHandle(client, data) {
   const { id, images = [] } = body;
   if (!client) throw new Error("ComfyUI 未配置");
   const prompt = generatePrompt({ classify, body });
-  const output = await client.generate({ ...body, model, prompt });
+  const output = await client.generate({ ...body, model, prompt, classify });
   return returnResult({ uid, model, images, id, input: { body }, output, is_real_progress: true });
 }

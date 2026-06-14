@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:15:31
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 17:10:21
+ * @LastEditTime: 2026-06-05 16:09:58
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -11,7 +11,6 @@ import { Config } from '@alicloud/openapi-client';
 import ImageenhanClient, { GenerateSuperResolutionImageRequest, MakeSuperResolutionImageRequest, EnhanceImageColorRequest, ColorizeImageRequest } from '@alicloud/imageenhan20190930';
 import ViapiClient, { GetAsyncJobResultRequest } from '@alicloud/viapi20230117';
 import { RuntimeOptions } from '@alicloud/tea-util';
-import AliOSS from "./alioss.js";
 export const VIAPI_FUN = new Set([
   "generateSuperResolutionImage",
   "makeSuperResolutionImage",
@@ -31,7 +30,7 @@ export default class AliViapi {
       accessKeySecret: option.accessKeySecret,
     });
     this.runtime = new RuntimeOptions({});
-    this.ossClient = new AliOSS(option);
+    this.ossClient = option.ossClient;
   }
   /**
    * @function generateSuperResolutionImage 生成式图像超分

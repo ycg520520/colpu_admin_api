@@ -2,12 +2,12 @@
  * @Author: colpu
  * @Date: 2026-03-24 16:52:46
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-18 20:55:39
+ * @LastEditTime: 2026-06-08 12:49:25
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
-import { db, aiDb, records, classify, template, classifyExtend, rechargePackages } from '../src/models/ai/index.js';
-
+import { db, aiDb, records, classify, template, categoryTemplate, templateGroup, classifyExtend, rechargePackages } from '../src/models/ai/index.js';
+import categoryTemplates from './data/ai/category_template.js';
 export default async ({ isSync, force }) => {
   console.log('🚀 Starting MySQL data initialization...');
   try {
@@ -37,6 +37,10 @@ async function initData(isSync) {
   for (const item of (await import('./data/ai/recharge_packages.js')).default) {
     await rechargePackages.upsert(item);
   }
+  for (const item of (await import('./data/ai/template_group.js')).default) {
+    await templateGroup.create(item);
+  }
+  await categoryTemplate.bulkCreate(categoryTemplates);
   // 创建客户端
   console.log('🎉 Data install completed successfully!');
 }

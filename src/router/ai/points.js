@@ -10,9 +10,8 @@ export default (app) => {
   router.get("/points/logs", verify, points.logs);
   router.get("/points/recharge-orders", verify, points.rechargeOrders);
 
-  router.get("/pay/recharge/packages", pay.packages);
-  router.get("/pay/recharge/invite-summary", pay.inviteSummary);
-  router.get("/pay/recharge/invite-for-order", verify, pay.inviteForOrder);
-  router.post("/pay/recharge/create", verify, pay.createRecharge);
+  router.get("/admin/points/logs", verify, points.list);
+  router.post("/admin/points/refund-consume", verify, points.refundConsume);
+
   useChildRouter(router);
 };

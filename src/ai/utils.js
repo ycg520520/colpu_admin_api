@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-01 23:21:03
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-11 10:16:44
+ * @LastEditTime: 2026-06-05 15:59:01
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -124,7 +124,7 @@ export function generatePrompt({ classify, body = {} }) {
   prompt = composeSizePrompt(prompt, size);
   const promptPositive = body.promptPositive ?? body.prompt_positive;
   const tplPrompt = composeTemplatePrompt(body.template).trim();
-  return [prompt, promptPositive, tplPrompt].map((s) => String(s).trim()).filter(Boolean).join("\n");
+  return [prompt, promptPositive, tplPrompt].filter(Boolean).map((s) => String(s).trim()).join("\n");
 }
 
 /**
@@ -153,10 +153,12 @@ export function getSize(data) {
 
 /**
  * @param {string|undefined|null} model - classify.model
- * @returns {"viapi"|"bailian"|"comfyui"|""}
+ * @returns {"viapi"|"bailian"|"comfyui"|"liblib"|"runninghub"|""}
  */
 export function clientKeyByModel(model) {
   const m = String(model ?? "").trim();
+  if (m.startsWith("runninghub")) return "runninghub";
+  if (m.startsWith("liblib")) return "liblib";
   if (m.startsWith("comfyui")) return "comfyui";
   if (VIAPI_FUN.has(m)) return "viapi";
   if (Object.keys(BAILIAN_MODELS).includes(m)) return "bailian";
@@ -171,6 +173,25 @@ export function workflowName(model) {
   const m = String(model ?? "").trim();
   if (m.startsWith("comfyui:")) return m.slice("comfyui:".length).trim();
   return "";
+}
+
+/**
+ * Liblib 路由键 `liblib:{templateUuid}` → templateUuid
+ * @param {string|undefined|null} model
+ */
+export function liblibTemplateUuid(model) {
+  const m = String(model ?? "").trim();
+  if (!m.startsWith("liblib:")) return "";
+  return m.slice("liblib:".length).trim();
+}
+
+/**
+ * RunningHub 路由键 `runninghub:{key}` → workflow key
+ */
+export function runningHubKey(model) {
+  const m = String(model ?? "").trim();
+  if (!m.startsWith("runninghub:")) return "";
+  return m.slice("runninghub:".length).trim();
 }
 
 /** body.images[0]，无则空串 */
@@ -200,4 +221,21 @@ export function progressStatus(task_status) {
     default:
       return "PENDING";
   }
+}
+
+export function composeImageUrls(data) {
+  const urls = [];
+  const push = (item) => {
+    if (!item || typeof item !== "object") return;
+    const u = item.fileUrl ?? item.url ?? item.imageUrl;
+    if (typeof u === "string" && u.trim()) urls.push(u.trim());
+  };
+  if (Array.isArray(data)) {
+    data.forEach(push);
+  } else if (data && typeof data === "object") {
+    if (Array.isArray(data.results)) data.results.forEach(push);
+    if (Array.isArray(data.images)) data.images.forEach(push);
+    push(data);
+  }
+  return urls;
 }

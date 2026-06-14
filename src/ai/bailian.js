@@ -2,13 +2,12 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:59:47
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-21 09:18:34
+ * @LastEditTime: 2026-06-05 16:09:44
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 // 阿里百炼服务平台，包括千问、万相
 import fetcher from "./fetcher.js";
-import AliOSS from "./alioss.js";
 export const BAILIAN_MODELS = {
   'wan2.5-i2i-preview': 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis',
   'wan2.6-image': 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image-generation/generation', // 异步
@@ -18,12 +17,12 @@ export default class Bailian {
   // 模型列表
   constructor(option) {
     if (!option.apikey) throw new Error('apikey is required');
-    const ossOption = option.ossOption;
-    if (!ossOption) {
-      throw new Error('缺少ossOption配置');
+    const ossClient = option.ossClient;
+    if (!ossClient) {
+      throw new Error('缺少ossClient实例，请确保在createClients时正确传入ossOption参数');
     }
     this.apikey = option.apikey;
-    this.ossClient = new AliOSS(ossOption);
+    this.ossClient = ossClient;
     this.headers = {
       'Authorization': 'Bearer ' + this.apikey,
     }

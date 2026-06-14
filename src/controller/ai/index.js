@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-21 19:41:46
+ * @LastEditTime: 2026-06-09 15:44:14
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -11,7 +11,7 @@ import Joi from "joi";
 import crypto from "crypto";
 import TaskPoller from '../../ai/task-poller.js';
 import aiGenerate from "../../ai/index.js";
-import { progressStatus } from "../../ai/utils.js";
+import { progressStatus, composeImageUrls } from "../../ai/utils.js";
 import { GoogleGenAI } from "@google/genai";
 
 export default class IndexController extends Controller {
@@ -39,40 +39,42 @@ export default class IndexController extends Controller {
       point,
     });
   }
-
+  async _update({ task_id, output, task_status, images, progress, message, is_real_progress }) {
+    const data = await this.service.ai.records.update({
+      task_id,
+      output,
+      task_status,
+      images
+    });
+    await this.service.ai.payload.upsertByTaskId({
+      task_id,
+      record_id: data.id,
+      output: output || {},
+      progress: progress ?? (task_status === 'SUCCEEDED' ? 100 : undefined),
+      status: task_status,
+      message,
+      is_real_progress: is_real_progress ?? false,
+    });
+    return data;
+  }
   async update(ctx) {
     console.log(ctx.request.body)
     const {
       task_id,
       output,
-      task_status, images, progress, status, message, is_real_progress } = ctx.validate({
+      task_status, images, progress, message, is_real_progress } = ctx.validate({
         body: {
           task_id: Joi.string().required(),
           output: Joi.object(),
           task_status: Joi.string(),
           images: Joi.array().items(Joi.string()),
           progress: Joi.number().min(0).max(100),
-          status: Joi.string(),
           message: Joi.string(),
           is_real_progress: Joi.boolean(),
         },
       });
     try {
-      const data = await this.service.ai.records.update({
-        task_id,
-        output,
-        task_status,
-        images
-      });
-      await this.service.ai.payload.upsertByTaskId({
-        task_id,
-        record_id: data.id,
-        output: output || {},
-        progress: progress ?? (task_status === 'SUCCEEDED' ? 100 : undefined),
-        status,
-        message,
-        is_real_progress: is_real_progress ?? false,
-      });
+      const data = await this._update({ task_id, output, task_status, images, progress, message, is_real_progress });
       ctx.respond(data, null, '更新成功');
     } catch (error) {
       console.log('update error==>', error);
@@ -94,6 +96,30 @@ export default class IndexController extends Controller {
       ctx.throw(404, '任务不存在');
     }
     this.poller.add(tasks);
+    ctx.respond(tasks, null, '已添加到轮询队列');
+  }
+  async webhook(ctx) {
+    const { body } = ctx.request;
+    const { taskId: task_id, event, eventData } = body;
+    const res = await this.service.ai.records.findOneByTaskId(task_id);
+    if (res.task_status === 'SUCCEEDED') {
+      return ctx.respond(res, null, '更新成功');
+    }
+    const ossClient = this.poller.clients.ossClient;
+
+    try {
+      const { code, msg, data: output } = JSON.parse(eventData);
+      const imageUrls = composeImageUrls(output);
+      const images = await ossClient.uploads(imageUrls);
+      const task_status = code !== 0 ? 'SUCCEEDED' : 'FAILED';
+      const progress = 100;
+      const message = task_status === 'SUCCEEDED' ? '任务完成' : '任务失败';
+      const res = await this._update({ task_id, output, task_status, images, progress, message });
+      ctx.respond(res, null, '更新成功');
+    } catch (error) {
+      console.log('update error==>', error);
+      ctx.throw(error)
+    }
   }
 
   async list(ctx) {
@@ -164,7 +190,6 @@ export default class IndexController extends Controller {
     const hdSize = classify?.size_hd;
     return reqSize === hdSize ? pointHd : point;
   }
-
 
   async generate(ctx) {
     const { uid } = ctx.state.user || {};
@@ -247,7 +272,7 @@ export default class IndexController extends Controller {
       });
       await this.service.ai.points.updateConsumeTaskRef(consumeSnap.logId, generateRes.task_id);
       const recordRes = await this.service.ai.records.createRecordWithPayload(generateRes);
-      if (recordRes.task_status === 'PENDING') {
+      if (["PENDING", "RUNNING"].includes(recordRes.task_status)) {
         this.poller.add([{ task_id: generateRes.task_id, model: generateRes.model }]);
       }
       ctx.respond(recordRes);

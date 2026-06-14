@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-12-15 21:15:32
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-19 08:54:08
+ * @LastEditTime: 2026-06-05 14:32:28
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -45,6 +45,7 @@ export default (app) => {
   router.get("/task/detail", verify, index.detail);
   // 轮询所有任务，项目启动时执行一次
   router.get("/task/poller", index.pollAllTask);
+  router.post("/runninghub/webhook", index.webhook);
   router.get("/task/test", index.test);
   useChildRouter(router);
 };

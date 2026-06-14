@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 22:19:49
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-10 11:31:59
+ * @LastEditTime: 2026-06-05 17:17:21
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -18,6 +18,7 @@ export default class AliOSS {
     this.client = new OSS(option);
   }
   async uploads(images) {
+    if (images.length === 0) return [];
     const uploadPromises = images.map(image => {
       const filename = `${this.uploadPath}${image.split('/').pop().split('?').shift()}`;
       return this.upload(image, filename);

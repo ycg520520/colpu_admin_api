@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-23 12:52:42
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-24 11:12:11
+ * @LastEditTime: 2026-06-10 13:32:53
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -14,11 +14,6 @@ export default (sequelize) => {
       primaryKey: true,
       autoIncrement: true,
       comment: '主键ID'
-    },
-    category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      comment: '关联分类ID'
     },
     name: {
       type: DataTypes.STRING(100),

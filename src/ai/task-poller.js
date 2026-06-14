@@ -33,6 +33,7 @@ class TaskPoller {
    * @param {object} config.ali.default - OSS / Viapi 等所需的 ossOption
    * @param {object} [config.aikeys] - 含 `ali_bailian` 等，用于 `createClients`
    * @param {object} [config.comfyOption] - ComfyUI（含 `baseUrl` 等）
+   * @param {object} [config.liblibOption] - LiblibAI 开放平台
    * @param {object} [config.poll] - `interval` / `maxConcurrency` / `idleSleepMs` 可选
    */
   constructor(config) {
@@ -47,6 +48,8 @@ class TaskPoller {
       aikeys: config.aikeys,
       ossOption,
       comfyOption: config.comfyOption,
+      liblibOption: config.liblibOption,
+      runninghubOption: config.runninghubOption,
     });
     if (clients == null || typeof clients !== "object") {
       throw new Error("createClients returned invalid clients");

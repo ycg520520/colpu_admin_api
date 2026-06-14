@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-23 12:52:42
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-18 16:21:32
+ * @LastEditTime: 2026-06-13 17:23:36
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -14,6 +14,12 @@ export default (sequelize) => {
       primaryKey: true,
       autoIncrement: true,
       comment: '主键ID'
+    },
+    // 分组字段后面可分离到template_group表中进行存储，
+    group: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: '通过模版category_id进行子集分组，实现多模版选择，如果为空则不分组'
     },
     name: {
       type: DataTypes.STRING(100),
