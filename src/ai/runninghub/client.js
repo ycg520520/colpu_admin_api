@@ -13,7 +13,8 @@
  */
 import fetcher from "../fetcher.js";
 import { loadRunningHubConfig } from "./config.js";
-import { buildIdPhotoRunPayload } from "./workflows/idPhotoParams.js";
+import idPhoto from "./workflows/idPhoto.js";
+import photoRepair from "./workflows/photoRepair.js";
 import { composeImageUrls } from "../utils.js";
 
 const TASK_CREATE = "/task/openapi/create";
@@ -84,7 +85,15 @@ export default class RunningHub {
   }
 
   _buildRunPayload(wf, data) {
-    return buildIdPhotoRunPayload(data, wf);
+    console.log(wf, data)
+    switch (wf.workflowId) {
+      case "1946963516941328385":
+        return photoRepair(data, wf);
+      case "2030897076795609089":
+        return idPhoto(data, wf);
+      default:
+        throw new Error(`RunningHub 工作流类型未定义: ${wf.type}`);
+    }
   }
 
   _mapCreateStatus(status) {

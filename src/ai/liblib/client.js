@@ -5,7 +5,7 @@
 import fetcher from "../fetcher.js";
 import { buildSignedUrl } from "./sign.js";
 import { loadLiblibConfig } from "./config.js";
-import buildImageRepairParams from "./workflows/imageRepairParams.js";
+import photoRepair from "./workflows/photoRepair.js";
 
 const PATH_COMFY_APP = "/api/generate/comfyui/app";
 const PATH_COMFY_STATUS = "/api/generate/comfy/status";
@@ -82,11 +82,19 @@ export default class LiblibAI {
     }
     return res.data ?? res;
   }
+  async _buildRunPayload(wf, data) {
+    switch (wf.workflowUuid) {
+      case "485582355f1b4e07a6a962380bae2292":
+        case "17182fd2311844079ccd49812b15cf97":
+        return photoRepair(wf, data);
+      default:
+        throw new Error(`Libliba 工作流类型未定义: ${wf.workflowUuid}`);
+    }
+  }
   async generate(data) {
-    // const workflows = this.resolveWorkflow(data.model);
-    const workflows = this.resolveWorkflow("liblib:485582355f1b4e07a6a962380bae2292");
+    const workflows = this.resolveWorkflow(data.model);
     const { templateUuid } = workflows;
-    const generateParams =  buildImageRepairParams(data, workflows);
+    const generateParams = await this._buildRunPayload(workflows, data);
     const out = await this._request(PATH_COMFY_APP, { templateUuid, generateParams });
     const generateUuid = out?.generateUuid;
     if (!generateUuid) {

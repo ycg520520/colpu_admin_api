@@ -19,8 +19,16 @@ import runningHubHandle from "./runninghub/handle.js";
  * @returns {Promise<{ record: object, payload: object}|null }>}
  */
 export default async function generate(clients, data) {
-  const { classify } = data;
-  const model = String(classify.model).trim();
+  const { classify, body } = data;
+  let model = String(classify.model).trim();
+  // 做特殊处理，可调用不同模型
+  if (["photoRepair"].includes(model)) {
+    // 对model进行处理
+    const templates = (body.templates || [{}])[0];
+    const template = templates.template || {}
+    model = template.name;
+    classify.model = model;
+  }
   if (model.startsWith("runninghub")) {
     return await runningHubHandle(clients.runninghub, data, returnResult);
   }
@@ -36,6 +44,10 @@ export default async function generate(clients, data) {
   if (Object.keys(BAILIAN_MODELS).includes(model)) {
     return bailianHandle(clients.bailian, data);
   }
+  throw new Error(
+    `未找到正确的model: ${mode}`,
+  );
+
 }
 function progressInfo(status) {
   return {

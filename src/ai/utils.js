@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-01 23:21:03
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-05 15:59:01
+ * @LastEditTime: 2026-06-15 11:41:45
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -20,21 +20,16 @@ export const composeSizePrompt = (prompt, size = '1k') => {
  * @param {unknown} vars
  * @returns {Array<{ name: string, value: string }>} 标准化后的变量数组
  * @description 支持以下输入格式：
- * 1. { name: string, value: string } - 直接提供 name 和 value。
- * 2. { name: string, values: Array<{ value: string }> } - 提供选项数组，取第一个选项的 value 作为变量值。
- * 3. 多选项未选时，value 为空串。
- * 4. 不符合上述格式的项将被过滤掉。
+ * { name: string, value: string } - 直接提供 name 和 value。
  */
 export function normalizeVariables(vars) {
   if (!Array.isArray(vars) || !vars.length) return [];
   return vars
     .map((v) => {
       if (!v || typeof v !== "object" || !v.name) return null;
-      if (v.value != null) return { name: String(v.name), value: String(v.value) };
-      if (Array.isArray(v.values) && v.values.length && v.values[0]?.value != null) {
-        return { name: String(v.name), value: String(v.values.map(item => item.value).join(",")) };
-      }
-      return { name: String(v.name), value: "" };
+      const { name, value } = v;
+      if (value != null) return { name, value };
+      return { name, value: "" };
     })
     .filter(Boolean);
 }
@@ -43,7 +38,7 @@ export function normalizeVariables(vars) {
  * @description
  * 将主提示词与变量进行组合，生成最终的提示词字符串。
  * - 主提示词（prompt）可以包含变量占位符，如 {size}，会被替换为实际值。
- * - 变量（promptVariables）支持两种格式：{ name, value } 或 { name, values: [{ value }] }。
+ * - 变量（promptVariables）支持格式：{ name, value }。
  * - 如果 prompt 为 null 或 undefined，则视为 "" 处理。
  * @param {string|null|undefined} prompt - 主提示词，可能包含变量占位符。
  * @param {unknown} promptVariables - 变量列表，用于替换主提示词中的占位符。
@@ -52,13 +47,13 @@ export function normalizeVariables(vars) {
  * const prompt = "生成一张{size}的图片";
  * const variables = [
  *   { name: "size", value: "512x512" },
- *   { name: "color", values: [{ value: "red" }, { value: "blue" }] }
  * ];
  * const result = composePrompt(prompt, variables);
  * console.log(result); // 输出: "生成一张512x512的图片"
  */
 export const composePrompt = (prompt, promptVariables) => {
-  let out = prompt === null ? "" : String(prompt);
+  if (!prompt) return "";
+  let out = prompt;
   const vars = normalizeVariables(promptVariables);
   if (!Array.isArray(vars) || !vars.length) return out;
   for (const v of vars) {
@@ -88,7 +83,6 @@ export const composePrompt = (prompt, promptVariables) => {
  *   prompt: "请生成一张{size}的{color}图片",
  *   prompt_variables: [
  *     { name: "size", value: "512x512" },
- *     { name: "color", values: [{ value: "red" }, { value: "blue" }] }
  *   ]
  * };
  * const result = composeTemplatePrompt(template);
@@ -96,7 +90,7 @@ export const composePrompt = (prompt, promptVariables) => {
  */
 export const composeTemplatePrompt = (template) => {
   if (!template || typeof template !== "object") return "";
-  const prompt = !!template.prompt ? String(template.prompt) : "";
+  const { prompt, prompt_variables } = template;
   return composePrompt(prompt, template.prompt_variables);
 };
 
@@ -106,7 +100,7 @@ export const composeTemplatePrompt = (template) => {
  * 根据分类与请求 body 拼出最终提示词，供 Comfy / 百炼等通道直接使用（各工作流不再重复拼文案）。
  * - 主段：body.prompt 优先，否则用 classify.prompt；经 body.prompt_variables 占位替换、{size} 替换（body.size 或 classify.size，默认 1k）。
  * - 中间段（可选）：body.promptPositive 或 body.prompt_positive，trim 后非空则作为独立一段参与拼接。
- * - 模版段（可选）：body.template，经 {@link composeTemplatePrompt} 得到文案，trim 后非空则参与拼接。
+ * - 模版段（可选）：body.templates，经 {@link composeTemplatePrompt} 得到文案，trim 后非空则参与拼接。
  * - 拼接顺序为主段、中间段、模版段，各段 trim，空段丢弃，段之间用换行符 \n 连接。
  * @param {object} opts
  * @param {Record<string, unknown>} opts.classify - 分类行（含 prompt、size 等）
@@ -122,9 +116,16 @@ export function generatePrompt({ classify, body = {} }) {
   let prompt = body.prompt || classify.prompt || '';
   prompt = composePrompt(prompt, body.prompt_variables);
   prompt = composeSizePrompt(prompt, size);
-  const promptPositive = body.promptPositive ?? body.prompt_positive;
-  const tplPrompt = composeTemplatePrompt(body.template).trim();
-  return [prompt, promptPositive, tplPrompt].filter(Boolean).map((s) => String(s).trim()).join("\n");
+  const prompt_positive = body.prompt_positive;
+  const tpls = body.templates || [];
+  const templates = tpls.map((item) => {
+    const { template, ...reset } = item;
+    return {
+      ...reset,
+      prompt: composeTemplatePrompt(item.template).trim()
+    }
+  })
+  return { prompt, prompt_positive, templates };
 }
 
 /**

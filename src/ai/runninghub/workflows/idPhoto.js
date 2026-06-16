@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-06-04 16:25:24
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-05 22:51:37
+ * @LastEditTime: 2026-06-16 09:02:49
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -17,10 +17,10 @@
  *
  * @see https://www.runninghub.cn/call-api/api-detail/2030897076795609089?apiType=5
  */
-import { readFileSync } from "fs";
+
 import { randomInt } from "crypto";
-import { composePrompt, normalizeVariables } from "../../utils.js";
-import { resolveWorkflowApiPath } from "../config.js";
+import { firstImage } from "../../utils.js";
+import { collectVarMap, assertWorkflowNodes, getNodeInfoList, parseTruthy, parseHD } from "../config.js";
 
 /** 客户端「背景颜色」文案 → 孤海-取色器主色 */
 const ID_PHOTO_BG_HEX = {
@@ -44,7 +44,7 @@ const ID_PHOTO_BG_HEX = {
  * | hairstyle         | 294 | 发型选择器 |
  * | extraText         | 195 | 额外提示词 |
  * | skinToggle        | 318 | 美颜开关 |
- * | hdToggle          | 319 | 超高清开关（body.size === classify.size_hd） |
+ * | hdToggles          | [321, 322] | 超高清开关（body.size === classify.size_hd） |
  * | bgPicker          | 336 | 背景色 |
  * | seed              | 289 | 随机种子 |
  * | layout            | 70  | 孤海-单尺寸排版（相纸宽高，厘米） |
@@ -52,14 +52,14 @@ const ID_PHOTO_BG_HEX = {
  * | layoutGroupSwitch | 323 | 排版分组开关（仅 workflow JSON，API 导出 inputs 为空） |
  * | saveImage         | 315 | 最终保存；排版开启时 images 须指向 70 |
  */
-export const ID_PHOTO_NODES = {
+const NODES = {
   loadImage: "35",
   crop: "36",
   clothing: "284",
   hairstyle: "294",
   extraText: "195",
   skinToggle: "318",
-  hdToggle: "319",
+  hdToggles: ["321", "322"],
   bgPicker: "336",
   seed: "289",
   layout: "70",
@@ -102,121 +102,21 @@ const LAYOUT_PAPER_PRESET = {
   "A4竖版": { w: 21, h: 29.7 },
 };
 
-const _workflowSchemaCache = Object.create(null);
-
-function loadWorkflowSchema(wf) {
-  const file = resolveWorkflowApiPath(wf);
-  if (!_workflowSchemaCache[file]) {
-    _workflowSchemaCache[file] = JSON.parse(readFileSync(file, "utf8"));
-  }
-  return _workflowSchemaCache[file];
-}
-
-/**
- * 写入 workflow JSON：排版开/关与最终出图节点
- *
- * 关闭排版（默认）：323.开关=false，315 保持接 233（单张高清图）
- * 开启排版：323.开关=true，315.images=[70,0] 保存排版图；70/71 参数由 nodeInfoList 覆盖
- */
-function applyLayoutWorkflowGraph(graph, layoutOn) {
-  const switchId = ID_PHOTO_NODES.layoutGroupSwitch;
-  const saveId = ID_PHOTO_NODES.saveImage;
-  const layoutId = ID_PHOTO_NODES.layout;
-  const layoutCropId = ID_PHOTO_NODES.layoutCrop;
-  const switchNode = graph[switchId];
-  const saveNode = graph[saveId];
-  if (!switchNode) {
-    throw new Error(`证件照工作流缺少排版组开关节点 ${switchId}`);
-  }
-  if (!saveNode?.inputs) {
-    throw new Error(`证件照工作流缺少保存节点 ${saveId}`);
-  }
-  graph[switchId] = {
-    ...switchNode,
-    inputs: { "开关": true },
-  };
-  graph[saveId] = {
-    ...saveNode,
-    inputs: {
-      ...saveNode.inputs,
-      images: [layoutOn ? layoutId : layoutCropId, 0],
-    },
-  };
-  return graph;
-}
-
-function assertWorkflowNodes(wf) {
-  const schema = loadWorkflowSchema(wf);
-  for (const [key, nodeId] of Object.entries(ID_PHOTO_NODES)) {
-    if (!schema[nodeId]) {
-      throw new Error(`证件照工作流缺少节点 ${nodeId}（${key}）`);
-    }
-  }
-}
-
-function collectVarMap({ body = {}, template } = {}) {
-  const list = [
-    ...normalizeVariables(body.prompt_variables),
-    ...normalizeVariables(template?.prompt_variables),
-  ];
-  const map = Object.create(null);
-  for (const { name, value } of list) {
-    if (!name) continue;
-    map[name] = value;
-  }
-  return map;
-}
-
-/** 解析「风格类型|提示词」或纯提示词（服装/发型模板常用） */
-function parseStylePair(raw) {
-  const s = String(raw ?? "").trim();
-  if (!s) return {};
-  const pipe = s.indexOf("|");
-  if (pipe >= 0) {
-    return {
-      styleType: s.slice(0, pipe).trim(),
-      promptText: s.slice(pipe + 1).trim(),
-    };
-  }
-  if (/^\d+\.\s*.+_/.test(s)) {
-    return { styleType: s };
-  }
-  return { promptText: s };
-}
-
 function pickSelector(vars, kind) {
-  if (kind === "发型" && vars["发型选择"]) {
-    const p = parseStylePair(vars["发型选择"]);
-    if (p.styleType || p.promptText) return p;
-    return { promptText: String(vars["发型选择"]).trim() };
-  }
-  const combined = vars[kind] ?? vars[`${kind}模板`];
-  if (combined) {
-    const p = parseStylePair(combined);
-    if (p.styleType || p.promptText) return p;
-  }
+  const p = vars.find(item => item.name === kind || item.id === kind) || {};
+  if (p.styleType || p.promptText) return p;
   const styleType =
-    vars[`${kind}风格类型`] ??
-    vars[`${kind}风格`] ??
-    vars[`${kind}_style`];
+    p[`${kind}风格类型`] ??
+    p[`${kind}风格`] ??
+    p[`${kind}_style`];
   const promptText =
-    vars[`${kind}提示词`] ??
-    vars[`${kind}提示词输出`] ??
-    vars[`${kind}_prompt`];
+    p[`${kind}提示词`] ??
+    p[`${kind}提示词输出`] ??
+    p[`${kind}_prompt`] ?? p.prompt;
   return {
     styleType: styleType ? String(styleType).trim() : undefined,
-    promptText: promptText ? String(promptText).trim() : undefined,
+    promptText: promptText ? String(promptText).trim() : undefined
   };
-}
-
-/** 模版 prompt 替换变量并去掉 {发型选择}，供节点 284 服装提示词 */
-function buildClothingPrompt(template) {
-  if (!template?.prompt) return "";
-  const vars = (template.prompt_variables || []).filter(
-    (v) => v && v.name && v.name !== "发型选择",
-  );
-  let text = composePrompt(String(template.prompt), vars);
-  return text.replace(/\{发型选择\}/g, "").trim();
 }
 
 function resolveBgHex(raw) {
@@ -224,16 +124,6 @@ function resolveBgHex(raw) {
   if (!s) return undefined;
   if (/^#[0-9A-Fa-f]{3,8}$/.test(s)) return s;
   return ID_PHOTO_BG_HEX[s] ?? ID_PHOTO_BG_HEX[s.replace(/色$/, "")];
-}
-
-function parseTruthy(raw) {
-  if (raw === true || raw === 1) return true;
-  if (raw === false || raw === 0) return false;
-  const s = String(raw ?? "").trim().toLowerCase();
-  if (!s) return undefined;
-  if (["1", "true", "yes", "on", "开启", "开", "是"].includes(s)) return true;
-  if (["0", "false", "no", "off", "关闭", "关", "否"].includes(s)) return false;
-  return undefined;
 }
 
 /**
@@ -314,33 +204,34 @@ function resolveLayoutPhotoPatch({ body, classify, vars }) {
  * @param {object} wf - runninghub 工作流配置（含 path）
  * @returns {{ patches: Record<string, Record<string, unknown>>, layoutOn: boolean }}
  */
-export function buildIdPhotoNodePatches(data, wf) {
-  assertWorkflowNodes(wf);
+function setNodeInfoList(data, wf) {
 
-  const { body = {}, template, classify, seed } = data;
-  const vars = collectVarMap({ body, template });
-  const N = ID_PHOTO_NODES;
-  const patches = {};
+  const { body = {}, templates, classify, seed } = data;
+  const vars = collectVarMap(body.prompt_variables);
+  const map = {};
 
   const set = (nodeId, inputs) => {
-    patches[nodeId] = { ...(patches[nodeId] || {}), ...inputs };
+    map[nodeId] = { ...(map[nodeId] || {}), ...inputs };
   };
 
-  const hair = pickSelector(vars, "发型");
-  let cloth = pickSelector(vars, "服装");
-  const clothingFromTemplate = buildClothingPrompt(template);
-  if (!cloth.styleType && !cloth.promptText && clothingFromTemplate) {
-    cloth = { promptText: clothingFromTemplate };
+  // 设置上传图片
+  const imageUrl = firstImage(body.images);
+  if (!imageUrl) {
+    throw new Error("需要 body.images[0]：用户上传图片可访问URL");
   }
+  set(NODES.loadImage, { image: imageUrl });
+
+  const hair = pickSelector(templates, 1);
+  const cloth = pickSelector(templates, 2);
 
   if (hair.styleType || hair.promptText) {
-    set(N.hairstyle, {
+    set(NODES.hairstyle, {
       ...(hair.styleType ? { 风格类型: hair.styleType } : {}),
       ...(hair.promptText ? { 提示词输出: hair.promptText } : {}),
     });
   }
   if (cloth.styleType || cloth.promptText) {
-    set(N.clothing, {
+    set(NODES.clothing, {
       ...(cloth.styleType ? { 风格类型: cloth.styleType } : {}),
       ...(cloth.promptText ? { 提示词输出: cloth.promptText } : {}),
     });
@@ -349,55 +240,89 @@ export function buildIdPhotoNodePatches(data, wf) {
   const bgRaw = vars["背景颜色"] ?? vars["背景色"] ?? vars["background"];
   const bgHex = resolveBgHex(bgRaw);
   if (bgHex) {
-    set(N.bgPicker, { 模式: "纯色", 主色: bgHex, 辅色: "#ffffff" });
-    set(N.crop, { 自定义填充色: bgHex });
+    set(NODES.bgPicker, { 模式: "纯色", 主色: bgHex, 辅色: "#ffffff" });
+    set(NODES.crop, { 自定义填充色: bgHex });
   }
-
-  const hdSize = classify?.size_hd != null ? String(classify.size_hd) : "";
-  const reqSize = body.size != null ? String(body.size) : "";
-  set(N.hdToggle, { 开关: hdSize !== "" && reqSize !== "" && hdSize === reqSize });
 
   const enhanceOn =
     classify?.enable_enhance !== 0 && classify?.enable_enhance !== false;
-  set(N.skinToggle, { 开关: !!enhanceOn });
+  set(NODES.skinToggle, { 开关: !!enhanceOn });
 
   // 设置照片尺寸
   const cropPatch = resolveLayoutPhotoPatch({ body, classify, vars });
-  set(N.layoutCrop, cropPatch);
+  set(NODES.layoutCrop, cropPatch);
 
 
   const userPrompt = String(body.prompt ?? "").trim();
   if (userPrompt) {
-    set(N.extraText, { text: userPrompt });
+    set(NODES.extraText, { text: userPrompt });
   }
 
-  set(N.seed, {
+  set(NODES.seed, {
     seed: seed != null ? seed : randomInt(0, 281474976710655),
+  });
+  const isHD = parseHD(body.size);
+  NODES.hdToggles.forEach(nodeId => {
+    set(nodeId, { 开关: isHD });
   });
 
   const layoutOn = resolveLayoutEnabled({ body, classify, vars });
   if (layoutOn) {
     const paper = resolvePaperSize({ body, classify, vars });
-    set(N.layout, { "相纸宽": paper.w, "相纸高": paper.h });
+    set(NODES.layout, { "相纸宽": paper.w, "相纸高": paper.h });
     const layoutCrop = resolveLayoutPhotoPatch({ body, classify, vars });
     if (bgHex) {
       layoutCrop.自定义填充色 = bgHex;
     }
-    set(N.layoutCrop, layoutCrop);
+    set(NODES.layoutCrop, layoutCrop);
   }
-
-  return { patches, layoutOn };
+  const nodeInfoList = getNodeInfoList(map)
+  return { nodeInfoList, layoutOn, isHD };
 }
 
-/** @param {Record<string, Record<string, unknown>>} patches */
-export function patchesToNodeInfoList(patches) {
-  const list = [];
-  for (const [nodeId, inputs] of Object.entries(patches)) {
-    for (const [fieldName, fieldValue] of Object.entries(inputs)) {
-      list.push({ nodeId, fieldName, fieldValue });
-    }
+/**
+ * 写入 workflow JSON：排版开/关与最终出图节点
+ *
+ * 关闭排版（默认）：323.开关=false，315 保持接 233（单张高清图）
+ * 开启排版：323.开关=true，315.images=[70,0] 保存排版图；70/71 参数由 nodeInfoList 覆盖
+ */
+function setWorkflow(graph, isHD, layoutOn) {
+  const hdToggles = NODES.hdToggles;
+  const switchId = NODES.layoutGroupSwitch;
+  const saveId = NODES.saveImage;
+  const layoutId = NODES.layout;
+  const layoutCropId = NODES.layoutCrop;
+  const switchNode = graph[switchId];
+  const saveNode = graph[saveId];
+
+  if (!switchNode) {
+    throw new Error(`证件照工作流缺少排版组开关节点 ${switchId}`);
   }
-  return list;
+  if (!saveNode?.inputs) {
+    throw new Error(`证件照工作流缺少保存节点 ${saveId}`);
+  }
+  hdToggles.forEach(toggleId => {
+    const node = graph[toggleId];
+    if (!node) {
+      throw new Error(`证件照工作流缺少排版开关节点 ${toggleId}`);
+    }
+    graph[toggleId] = {
+      ...node,
+      inputs: { "开关": isHD },
+    };
+  });
+  graph[switchId] = {
+    ...switchNode,
+    inputs: { "开关": true },
+  };
+  graph[saveId] = {
+    ...saveNode,
+    inputs: {
+      ...saveNode.inputs,
+      images: [layoutOn ? layoutId : layoutCropId, 0],
+    },
+  };
+  return graph;
 }
 
 /**
@@ -407,28 +332,17 @@ export function patchesToNodeInfoList(patches) {
  * @param {object} wf
  * @returns {{ nodeInfoList: Array<{nodeId:string,fieldName:string,fieldValue:unknown}>, workflow: string }}
  */
-export function buildIdPhotoRunPayload(data, wf) {
-  const images = data.images ?? data.body?.images ?? [];
-  const imageUrl = images[0];
-  if (!imageUrl || String(imageUrl).trim() === "") {
-    throw new Error("证件照需要 body.images[0]：用户照片可访问 URL");
-  }
+export default function buildRunPayload(data, wf) {
+  // 判断工作流节点是否完整
+  const schema = assertWorkflowNodes(wf, NODES);
 
-  const { patches, layoutOn } = buildIdPhotoNodePatches(data, wf);
-  const nodeInfoList = [
-    {
-      nodeId: ID_PHOTO_NODES.loadImage,
-      fieldName: "image",
-      fieldValue: String(imageUrl).trim(),
-    },
-    ...patchesToNodeInfoList(patches),
-  ];
+  const { nodeInfoList, layoutOn, isHD } = setNodeInfoList(data, wf);
 
-  const graph = JSON.parse(JSON.stringify(loadWorkflowSchema(wf)));
-  applyLayoutWorkflowGraph(graph, layoutOn);
+  const workflow = JSON.parse(JSON.stringify(schema));
+  setWorkflow(workflow, isHD, layoutOn);
 
   return {
     nodeInfoList,
-    workflow: JSON.stringify(graph),
+    workflow: JSON.stringify(workflow),
   };
 }

@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-29 15:50:13
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-09 15:44:14
+ * @LastEditTime: 2026-06-15 11:16:36
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -210,7 +210,7 @@ export default class IndexController extends Controller {
         prompt: Joi.string().allow("", null).optional(),
         prompt_variables: Joi.array().items(promptVariableItem).default([]),
         size: Joi.string().optional(),
-        template: Joi.object().unknown(true).optional(),
+        templates: Joi.array().items(Joi.object()).optional(),
 
         // ComfyUI 文生图等可选
         width: Joi.number().integer().min(64).max(4096).optional(),

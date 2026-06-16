@@ -18,8 +18,8 @@ export default [
     cost_point: 20,
     cost_point_hd: 40,
     model: "runninghub:2030897076795609089",
-    prompt: "蓬松有层次的发型。",
-    // 自动排版/相纸/照片尺寸 → runninghub/workflows/idPhotoParams.js
+    prompt: "",
+    // 自动排版/相纸/照片尺寸 → runninghub/workflows/idPhoto.js
     prompt_variables: [
       {
         name: "背景颜色",
@@ -92,7 +92,6 @@ export default [
     output_dpi: 300,
     is_hot: 1,
     is_tip: 1,
-    disabled: 0,
     sort_order: 10,
   },
   {
@@ -107,7 +106,6 @@ export default [
     aspect_ratio: "2:3",
     is_hot: 1,
     is_tip: 1,
-    disabled: 0,
   },
   {
     id: 3,
@@ -120,7 +118,7 @@ export default [
     aspect_ratio: "2:3",
     is_hot: 1,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 4,
@@ -132,7 +130,7 @@ export default [
     upload_opt: [{ tip: "上传正脸清晰半身照" }],
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 5,
@@ -144,7 +142,7 @@ export default [
     upload_opt: [{ tip: "上传正脸清晰半身照" }],
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 6,
@@ -158,7 +156,7 @@ export default [
     upload_opt: [{ tip: "上传您的照片" }, { tip: "上传偶像的照片" }],
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 7,
@@ -185,7 +183,7 @@ export default [
     cost_point: 20,
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 9,
@@ -197,7 +195,7 @@ export default [
     upload_opt: [{ tip: "尽量选4K，太小看不清细节" }],
     is_hot: 1,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 11,
@@ -209,7 +207,7 @@ export default [
     upload_opt: [{ tip: "D头像选2K分辨率就够了" }],
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 12,
@@ -224,7 +222,7 @@ export default [
     enable_enhance: 1,
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 14,
@@ -240,7 +238,7 @@ export default [
     size_hd: "4K",
     is_hot: 0,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 15,
@@ -252,7 +250,7 @@ export default [
     upload_opt: [{ tip: "上传您的照片" }],
     is_hot: 1,
     is_tip: 1,
-    disabled: 0,
+    disabled: 1,
   },
   {
     id: 16,
@@ -300,6 +298,6 @@ export default [
     upload_opt: [{ tip: "上传您的照片" }],
     is_hot: 1,
     is_tip: 0,
-    disabled: 0,
+    disabled: 1,
   },
 ];
