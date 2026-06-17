@@ -21,6 +21,7 @@ import runningHubHandle from "./runninghub/handle.js";
 export default async function generate(clients, data) {
   const { classify, body } = data;
   let model = String(classify.model).trim();
+  console.log("model==>1", model);
   // 做特殊处理，可调用不同模型
   if (["photoRepair"].includes(model)) {
     // 对model进行处理
@@ -28,7 +29,7 @@ export default async function generate(clients, data) {
     const template = templates.template || {}
     model = template.name;
     classify.model = model;
-    console.log("model", model);
+    console.log("model==>2", model);
   }
   if (model.startsWith("runninghub")) {
     return await runningHubHandle(clients.runninghub, data, returnResult);
