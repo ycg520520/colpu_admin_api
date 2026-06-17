@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-19 00:25:43
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-16 13:13:34
+ * @LastEditTime: 2026-06-17 16:15:48
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -210,35 +210,35 @@ export default [
   { id: 200, name: "发型-男-04", img_src: "static/template/fxnan/04.jpg", img_width: 800, img_height: 1124, prompt: "发型更改成：韩式齐刘海碎盖短发，颅顶蓬松无分缝。" },
   {
     id: 201,
-    name: "old1-liblib:485582355f1b4e07a6a962380bae2292",
+    name: "liblib:485582355f1b4e07a6a962380bae2292",
     img_src: "static/template/20260221_6998d545939cc.jpg",
     img_width: 1147,
     img_height: 1536,
   },
   {
     id: 202,
-    name: "old2-liblib:485582355f1b4e07a6a962380bae2292",
+    name: "liblib:485582355f1b4e07a6a962380bae2292",
     img_src: "static/template/20260221_6998d3c00280b.jpg",
     img_width: 1147,
     img_height: 1536,
   },
   {
     id: 203,
-    name: "old3-liblib:17182fd2311844079ccd49812b15cf97",
+    name: "liblib:17182fd2311844079ccd49812b15cf97",
     img_src: "static/template/20260221_6998ddb779902.jpg",
     img_width: 1147,
     img_height: 1536,
   },
   {
     id: 204,
-    name: "old4-liblib:17182fd2311844079ccd49812b15cf97",
+    name: "liblib:17182fd2311844079ccd49812b15cf97",
     img_src: "static/template/20260221_6998db3d60ab2.jpg",
     img_width: 1147,
     img_height: 1536,
   },
   {
     id: 205,
-    name: "通用模版-runinghub:1946963516941328385",
+    name: "runinghub:1946963516941328385",
     img_src: "static/template/20260517_6998d674b5df1.png",
     img_width: 1147,
     img_height: 1536,

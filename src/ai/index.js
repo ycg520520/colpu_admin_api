@@ -28,6 +28,7 @@ export default async function generate(clients, data) {
     const template = templates.template || {}
     model = template.name;
     classify.model = model;
+    console.log("model", model);
   }
   if (model.startsWith("runninghub")) {
     return await runningHubHandle(clients.runninghub, data, returnResult);
