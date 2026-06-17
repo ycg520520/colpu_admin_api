@@ -201,9 +201,9 @@ class TaskPoller {
           "X-Verify-Skip": "true",
         },
       }).then((res) => {
-        console.log(`Task ${task_id} updated successfully:`, res);
+        console.log(`Task ${task_id} updated successfully:`);
       }).catch((err) => {
-        console.log(`Task ${task_id} updated error:`, err);
+        console.error(`Task ${task_id} updated error:`);
       });
       const st = data?.task_status;
       const known = new Set(["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"]);
