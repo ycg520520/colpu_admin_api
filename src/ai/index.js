@@ -45,7 +45,7 @@ export default async function generate(clients, data) {
     return bailianHandle(clients.bailian, data);
   }
   throw new Error(
-    `未找到正确的model: ${mode}`,
+    `未找到正确的model: ${model}`,
   );
 
 }

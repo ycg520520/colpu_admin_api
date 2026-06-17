@@ -164,7 +164,7 @@ export default [
     description: "找回逝去的记忆",
     icon: "static/icon/06.png",
     cost_point: 20,
-    model: "runninghub:1941993225135800322",
+    model: "photoRepair",
     prompt: "老照片{size}修复高清，去掉划痕衣服修复,面部还原成真实人像,照片还原成彩色照，保持人物容貌不变，细腻皮肤真实质感。把放照片的的桌面，拿着照片的手以及一切非照片本身内容的背景裁剪掉，仅显示照片内的内容，画面比例由照片内内容决定。把有透视拉伸的照片变成正面无拉伸。{size}画质，极度细节。",
     upload_opt: [{ tip: "完全看不清五官及超大合影效果不佳" }],
     aspect_ratio: "free",
