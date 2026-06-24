@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-19 00:25:43
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-17 16:15:48
+ * @LastEditTime: 2026-06-17 16:23:55
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -238,7 +238,7 @@ export default [
   },
   {
     id: 205,
-    name: "runinghub:1946963516941328385",
+    name: "runninghub:1946963516941328385",
     img_src: "static/template/20260517_6998d674b5df1.png",
     img_width: 1147,
     img_height: 1536,

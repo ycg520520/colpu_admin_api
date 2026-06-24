@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-06-02 13:41:20
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-15 16:39:04
+ * @LastEditTime: 2026-06-24 16:35:22
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -13,6 +13,7 @@
 export default function photoRepair(wf, data) {
   const {
     prompt,
+    size,
     images = [],
   } = data;
 
@@ -26,6 +27,9 @@ export default function photoRepair(wf, data) {
     switch (class_type) {
       case "GeminiImage2Node":
         parmas.inputs = { prompt };
+        break;
+      case "easy int":
+        parmas.inputs = { value: size === "1K" ? 1024 : 2048 };
         break;
       case "LoadImage":
         parmas.inputs = { image: images[0] };

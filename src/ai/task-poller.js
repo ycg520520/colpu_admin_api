@@ -6,7 +6,7 @@
  * - 调度内核：./scheduler.js（零 fetcher / 零 SDK）
  * - SDK 实例：`./clients.js`（`createClients`）
  */
-import fetcher from "./fetcher.js";
+import fetcher from "../utils/fetcher.js";
 import PollScheduler from "./scheduler.js";
 import { createClients } from "./clients.js";
 import { clientKeyByModel, progressStatus } from "./utils.js";

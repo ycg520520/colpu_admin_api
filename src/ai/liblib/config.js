@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-28 11:37:47
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-16 14:53:46
+ * @LastEditTime: 2026-06-24 08:46:18
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -31,6 +31,17 @@ export const LIBLIB_CONFIG = {
       nodes: {
         "14": "GeminiImage2Node",
         "15": "LoadImage",
+      },
+    },
+    // https://www.liblib.art/modelinfo/9096aaa27d134bca94a737c09fd7f169?versionUuid=02fc0279db8e4953916a6ec2f08b1956
+    // https://www.liblib.art/apis/workflow?uuid=02fc0279db8e4953916a6ec2f08b1956
+    "02fc0279db8e4953916a6ec2f08b1956": {
+      name: "无损高清图像高清放大 最新版SeedVR2.5版 细节还原、低显存友好！",
+      templateUuid: "4df2efa0f18d46dc9758803e478eb51c",
+      workflowUuid: "02fc0279db8e4953916a6ec2f08b1956",
+      nodes: {
+        "4": "easy int",
+        "8": "LoadImage",
       },
     },
   },

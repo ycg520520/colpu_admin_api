@@ -258,7 +258,7 @@ export default [
     description: "模糊变清晰/更真实自然",
     icon: "static/icon/25.png",
     cost_point: 20,
-    model: "generateSuperResolutionImage",
+    model: "liblib:02fc0279db8e4953916a6ec2f08b1956",
     upload_opt: [{ tip: "上传您的照片" }],
     is_hot: 1,
     is_tip: 0,

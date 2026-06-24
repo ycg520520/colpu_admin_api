@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-27 08:44:18
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-09 16:33:07
+ * @LastEditTime: 2026-06-24 16:21:33
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -38,6 +38,7 @@ export default (sequelize) => {
     },
     task_status: {
       type: DataTypes.ENUM("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"),
+      // PENDING：任务排队中，RUNNING：任务处理中，SUCCEEDED：任务执行成功，FAILED：任务执行失败，CANCELED：任务取消，UNKNOWN 任务不存在或状态未知
       allowNull: false,
       defaultValue: "PENDING",
       comment: "任务状态枚举；前端进度条等见 record_payloads.status（字符串阶段）",

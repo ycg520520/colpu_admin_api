@@ -7,7 +7,7 @@
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
 // 阿里百炼服务平台，包括千问、万相
-import fetcher from "./fetcher.js";
+import fetcher from "../utils/fetcher.js";
 export const BAILIAN_MODELS = {
   'wan2.5-i2i-preview': 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis',
   'wan2.6-image': 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image-generation/generation', // 异步

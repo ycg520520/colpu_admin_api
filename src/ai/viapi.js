@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-03-30 21:15:31
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-05 16:09:58
+ * @LastEditTime: 2026-06-24 16:10:18
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -18,6 +18,14 @@ export const VIAPI_FUN = new Set([
   "enhanceImageColor",
   "faceEnhance",
 ]);
+const STATUS_MAP = {
+  "QUEUING": "PENDING",
+  "PROCESSING": "RUNNING",
+  "PROCESS_SUCCESS": "SUCCEEDED",
+  "PROCESS_FAILED": "FAILED",
+  "TIMEOUT_FAILED": "FAILED",
+  "LIMIT_RETRY_FAILED": "FAILED",
+};
 export default class AliViapi {
   constructor(option) {
     if (!option) {
@@ -200,13 +208,12 @@ export default class AliViapi {
 
     const { status, result } = res;
     let images = [];
-    let task_status = status;
     let output;
-    if (task_status === 'PROCESS_SUCCESS') {
+    const task_status = STATUS_MAP[status];
+    if (task_status === 'SUCCEEDED') {
       output = JSON.parse(result);
       const uploadImages = this.getImages(output);
       images = await this.ossClient.uploads(uploadImages);
-      task_status = 'SUCCEEDED'
     } else {
       output = {}
     }

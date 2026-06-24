@@ -2,7 +2,7 @@
  * LiblibAI 开放平台 HTTP 客户端
  * 工作流配置：./config.js（model 为 liblib:{templateUuid}）
  */
-import fetcher from "../fetcher.js";
+import fetcher from "../../utils/fetcher.js";
 import { buildSignedUrl } from "./sign.js";
 import { loadLiblibConfig } from "./config.js";
 import photoRepair from "./workflows/photoRepair.js";
@@ -85,7 +85,8 @@ export default class LiblibAI {
   async _buildRunPayload(wf, data) {
     switch (wf.workflowUuid) {
       case "485582355f1b4e07a6a962380bae2292":
-        case "17182fd2311844079ccd49812b15cf97":
+      case "17182fd2311844079ccd49812b15cf97":
+      case "02fc0279db8e4953916a6ec2f08b1956":
         return photoRepair(wf, data);
       default:
         throw new Error(`Libliba 工作流类型未定义: ${wf.workflowUuid}`);
@@ -116,7 +117,7 @@ export default class LiblibAI {
     const list = data?.images;
     if (!Array.isArray(list)) return [];
     return list
-      .map((item) => item?.imageUrl)
+      .map((item) => (["PreviewImage", "SaveImage"].includes(item.outputName)) && item.imageUrl)
       .filter((u) => typeof u === "string" && u.trim());
   }
 

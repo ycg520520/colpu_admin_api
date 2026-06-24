@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-10-11 11:13:07
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-31 16:46:48
+ * @LastEditTime: 2026-06-17 22:54:12
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -28,7 +28,7 @@ export default class UserController extends Controller {
       uid,
     });
     if (!userRow) {
-      ctx.throw(404, '用户不存在');
+      ctx.throw(401, '用户不存在');
       return;
     }
     const { roles, permissions } = await this.service.users.findUserRoleAndPermission(userRow.id);

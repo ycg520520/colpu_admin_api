@@ -1,15 +1,15 @@
 /**
  * @Author: colpu
- * @Date: 2026-03-30 22:19:49
+ * @Date: 2026-06-24 09:04:34
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-05 17:17:21
+ * @LastEditTime: 2026-06-24 16:41:56
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
-import OSS from 'ali-oss';
-import { Readable } from 'stream';
-import fetcher from "../utils/fetcher.js";
-export default class AliOSS {
+import fetcher from './fetcher.js';
+import FormData from 'form-data';
+// 暂未完成，详见：https://123yunpan.yuque.com/org-wiki-123yunpan-muaork/cr6ced
+class Yun123 {
   constructor(option) {
     if (!option) throw new Error('oss is required');
     this.accessKeyId = option.accessKeyId;
@@ -39,9 +39,22 @@ export default class AliOSS {
       }
       // 2. 获取流对象
       const stream = Readable.from(response.body);
-      // 4. 上传到 OSS
-      // 阿里云 SDK 的 put 方法支持直接传入 Stream
-      const result = await this.client.put(filename, stream);
+      const data = new FormData();
+      data.append('filename', filename);
+      data.append('file', stream);
+      data.append('parentFileID', '11522394');
+      data.append('etag', '511215951b857390c3f30c17d0dae8ee');
+      data.append('size', '35763200');
+      const result = await fetcher('https://openapi-upload.123242.com/upload/v2/file/single/create', {
+        method: 'post',
+        maxBodyLength: Infinity,
+        headers: {
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1...(过长省略)',
+          'Platform': 'open_platform',
+          ...data.getHeaders()
+        },
+        data: data
+      })
       console.log('上传成功:', result.name);
       return result.name;
     } catch (error) {

@@ -11,7 +11,7 @@
  *
  * @see https://www.runninghub.cn/call-api/api-detail/2030897076795609089?apiType=5
  */
-import fetcher from "../fetcher.js";
+import fetcher from "../../utils/fetcher.js";
 import { loadRunningHubConfig } from "./config.js";
 import idPhoto from "./workflows/idPhoto.js";
 import photoRepair from "./workflows/photoRepair.js";
