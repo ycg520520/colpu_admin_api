@@ -1,4 +1,12 @@
 /**
+ * @Author: colpu
+ * @Date: 2026-05-19 00:25:43
+ * @LastEditors: colpu ycg520520@qq.com
+ * @LastEditTime: 2026-06-25 09:13:09
+ * @
+ * @Copyright (c) 2026 by colpu, All Rights Reserved.
+ */
+/**
  * colpu_ai 库结构：仅通过本文件注册的 Umzug 迁移维护（不使用 sequelize.sync）。
  *
  * 用法：
@@ -19,6 +27,7 @@ import adConfig from "./migrations/ad_config.js";
 const allMigrations = [schema, rechargeOrdersMeta, adConfig];
 
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
+const downArg = process.argv.find((a) => a.startsWith("--down"));
 const onlyName = onlyArg?.slice("--only=".length);
 const migrations = onlyName
   ? allMigrations.filter((m) => m.name === onlyName)
@@ -48,5 +57,9 @@ if (pending.length) {
 
 if (pending.length) {
   await umzug.up();
+}
+const executed = await umzug.executed()
+if (downArg && executed.length) {
+  await umzug.down();
 }
 console.log("colpu_ai 迁移完成");
