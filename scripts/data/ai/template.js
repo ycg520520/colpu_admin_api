@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-19 00:25:43
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-17 16:23:55
+ * @LastEditTime: 2026-06-26 16:19:00
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -176,7 +176,7 @@ export default [
   { id: 166, name: "老年-男-22", img_src: "static/template/laonian/22.jpg", img_width: 800, img_height: 1124, prompt: "藏蓝色毛呢中山装，翻领单排扣，对称带盖口袋，版型利落，复古沉稳。" },
   { id: 167, name: "老年-男-23", img_src: "static/template/laonian/23.jpg", img_width: 800, img_height: 1124, prompt: "黑色棒球领夹克，带低调暗格纹，拉链款设计利落大方；内搭藏蓝格纹衬衫，整体为成熟稳重的中老年商务休闲风。" },
   { id: 168, name: "老年-男-24", img_src: "static/template/laonian/24.jpg", img_width: 800, img_height: 1124, prompt: "深蓝灰色翻领针织 Polo 衫，带棕黄与黑色横条纹，门襟纽扣设计，左胸有品牌标识，中老年证件照服装。" },
-  { id: 169, name: "发型-女-01", img_src: "static/template/fxnv/01.png", img_width: 800, img_height: 1124, prompt: "发型更换成：黑色侧编麻花辫，带轻薄空气刘海，碎发修饰脸颊，头发整齐垂于一侧，干净清爽 " },
+  { id: 169, name: "发型-女-01", img_src: "static/template/fxnv/01.png", img_width: 800, img_height: 1124, prompt: "发型更换成：蓬松有层次的发型 " },
   { id: 170, name: "发型-女-02", img_src: "static/template/fxnv/02.jpg", img_width: 800, img_height: 1124, prompt: "发型更换成：黑色侧编麻花辫，带轻薄空气刘海，碎发修饰脸颊，头发整齐垂于一侧，干净清爽 " },
   { id: 171, name: "发型-女-03", img_src: "static/template/fxnv/03.jpg", img_width: 800, img_height: 1124, prompt: "发型更换成：黑色高盘发，带轻薄空气刘海，鬓角留少量碎发修饰脸型，头发全部束起，露出完整额头与耳朵，干净利落 " },
   { id: 172, name: "发型-女-04", img_src: "static/template/fxnv/04.jpg", img_width: 800, img_height: 1124, prompt: "发型更换成：黑色中分长直发，两侧各饰一个黑色缎面蝴蝶结，鬓角留少量碎发修饰脸型，头发自然垂落于肩后 " },
