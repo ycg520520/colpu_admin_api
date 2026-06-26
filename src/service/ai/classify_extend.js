@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-30 13:05:48
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-09 15:57:38
+ * @LastEditTime: 2026-06-26 15:41:53
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -73,6 +73,7 @@ export default class ClassifyExtendService extends Base {
     };
     return classifyExtend.findAll({
       where,
+      order: [["sort_order", "DESC"]],
       include: [{
         model: classify,
         nested: false,

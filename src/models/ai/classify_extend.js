@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-24 10:17:50
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-25 15:26:42
+ * @LastEditTime: 2026-06-26 15:28:54
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -72,6 +72,11 @@ export default (sequelize) => {
       type: DataTypes.JSON,
       allowNull: true,
       comment: '错误示例，JSON格式如: [{ "id": 1, "title": "人像过多", "desc": "因多个面容需要进行修复，在修复过程中不确定因素过多，可能会导致修复结果有误。", "src": "static/example/err_01.jpg" }, { "id": 2, "title": "人像缺失", "desc": "大范围破损，遮挡，侵蚀等，在修复过程中无法完好的提取人像要素。", "src": "static/example/err_02.jpg" }, { "id": 3, "title": "非人像", "desc": "修复工具，对于人像修复效果较显著，非人像在修复时无显著效果。", "src": "static/example/err_03.jpg" }]'
+    },
+    sort_order: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      comment: '排序'
     },
     status: {
       type: DataTypes.TINYINT(1),
