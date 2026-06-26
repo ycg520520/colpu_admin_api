@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-05-19 00:25:43
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-25 09:13:09
+ * @LastEditTime: 2026-06-25 15:24:19
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -23,8 +23,9 @@ import { aiDb } from "../src/models/ai/index.js";
 import schema from "./migrations/schema.js";
 import rechargeOrdersMeta from "./migrations/recharge_orders_meta.js";
 import adConfig from "./migrations/ad_config.js";
+import classifyExtend from "./migrations/classify_extend.js";
 
-const allMigrations = [schema, rechargeOrdersMeta, adConfig];
+const allMigrations = [schema, rechargeOrdersMeta, adConfig, classifyExtend];
 
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
 const downArg = process.argv.find((a) => a.startsWith("--down"));

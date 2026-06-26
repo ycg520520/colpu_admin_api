@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-04-24 10:17:50
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-04-30 12:49:29
+ * @LastEditTime: 2026-06-25 15:26:42
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -30,6 +30,11 @@ export default (sequelize) => {
       allowNull: true,
       comment: '分类图标'
     },
+    href: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: '跳转地址'
+    },
     src: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -45,6 +50,12 @@ export default (sequelize) => {
       allowNull: false,
       defaultValue: 0.5,
       comment: '滑块百分比'
+    },
+    is_auto: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: '是否自动播放'
     },
     is_scale: {
       type: DataTypes.BOOLEAN,
