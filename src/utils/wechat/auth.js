@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-02-13 22:42:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-03-24 11:30:46
+ * @LastEditTime: 2026-06-29 13:28:55
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -424,8 +424,8 @@ export default class WechatOAuth {
    * @description 获取微信session
    * 登录凭证校验。通过wx.login接口获得临时登录凭证code后传到开发者服务器调用此接口完成登录流程。
    * 文档地址：https://developers.weixin.qq.com/minigame/dev/api-backend/open-api/login/auth.code2Session.html#%E8%AF%B7%E6%B1%82%E5%9C%B0%E5%9D%80
-   * @param {*} code 
-   * @returns 
+   * @param {*} code
+   * @returns
    * {
    * "openid": "OPENID",
    * "session_key": "SESSIONKEY",
@@ -444,5 +444,15 @@ export default class WechatOAuth {
       js_code: code,
     };
     return this.request(url, data);
+  }
+
+  async generateShortLink(data) {
+    const accessToken = await this.getAccessToken();
+    const url = `/wxa/genwxashortlink?access_token=${accessToken.access_token}`;
+    return this.request(url, Object.assign({
+      page_url: 'pages/home/index',
+      page_title: '首页',
+      is_permanent: true
+    }, data), { method: 'POST' });
   }
 }

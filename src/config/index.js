@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2025-03-29 15:54:59
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-06-05 15:02:58
+ * @LastEditTime: 2026-07-07 14:01:30
  * @
  * @Copyright (c) 2025 by colpu, All Rights Reserved.
  */
@@ -167,7 +167,7 @@ export default {
   updateTaskUrl: `http://127.0.0.1:8610/api/ai/task`,
   default_user_prfix: "@AU@_",
   /** 三方首次注册赠送积分；<=0 关闭 */
-  givePoint: 100,
+  givePoint: 60,
   /** 后台三方登录（appId 为空则接口返回未配置） */
   oauthLogin,
 };

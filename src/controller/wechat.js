@@ -2,7 +2,7 @@
  * @Author: colpu
  * @Date: 2026-02-13 22:24:11
  * @LastEditors: colpu ycg520520@qq.com
- * @LastEditTime: 2026-05-15 21:23:40
+ * @LastEditTime: 2026-06-29 13:22:50
  * @
  * @Copyright (c) 2026 by colpu, All Rights Reserved.
  */
@@ -216,5 +216,10 @@ export default class WeChatController extends Controller {
       return replyWxPush(ctx, 0, "success");
     }
     ctx.status = 405;
+  }
+
+  async shortLink(ctx) {
+    const res = await this.wechatOAuth.generateShortLink(ctx.query);
+    ctx.respond(res);
   }
 }
